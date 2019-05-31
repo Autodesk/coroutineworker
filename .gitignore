@@ -1,0 +1,27 @@
+# Mac OS X Directory Services
+.DS_Store
+
+# Java class files
+*.class
+
+# Intellij files
+*.iml
+
+# Local gradle properties
+local.properties
+
+# generated files
+gen/
+out/
+build/
+captures/
+.gradle/
+.idea/
+!.idea/codeStyles/
+!.idea/copyright/
+
+# ruby files
+.bundle
+vendor/
+fastlane/report.xml
+
