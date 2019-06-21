@@ -41,5 +41,5 @@ print(val) // prints 1
 
 ### Important Notes
 
-- Closures passed to `execute` and `performAndWait` are automatically frozen, so be careful about what your closure captures (i.e. implicit references to `this`)!
+- Closures passed to `execute` and `performAndWait` are automatically frozen, so be careful about what your closure captures (e.g. implicit references to `this`)!
 - The result value from `performAndWait` is also frozen.
