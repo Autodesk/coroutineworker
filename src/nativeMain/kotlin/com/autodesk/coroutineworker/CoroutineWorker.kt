@@ -77,14 +77,14 @@ actual class CoroutineWorker {
     actual companion object {
 
         /**
-         * Sets the handler for uncaught exceptions encountered during CoroutineWorker.execute
+         * Gets the number of active workers running in the underlying WorkerPool.
+         * This is useful when testing, to ensure you don't leave workers running
+         * across tests.
          */
-        fun setUnhandledExceptionHook(handler: (Throwable) -> Unit) {
-            BackgroundCoroutineWorkQueueExecutor.setUnhandledExceptionHook(handler)
-        }
+        val numActiveWorkers: Int
+            get() = executor.numActiveWorkers
 
         /** The executor used for all BackgroundJobs */
-        @SharedImmutable
         private val executor = BackgroundCoroutineWorkQueueExecutor<WorkItem>(4)
 
         actual fun execute(block: suspend CoroutineScope.() -> Unit): CoroutineWorker {
