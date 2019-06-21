@@ -1,8 +1,12 @@
 package com.autodesk.coroutineworker
 
+import co.touchlab.stately.concurrency.AtomicReference
 import co.touchlab.stately.concurrency.Lock
+import co.touchlab.stately.concurrency.value
 import co.touchlab.stately.concurrency.withLock
 import kotlin.native.concurrent.AtomicLong
+import kotlin.native.concurrent.Future
+import kotlin.native.concurrent.FutureState
 import kotlin.native.concurrent.TransferMode
 import kotlin.native.concurrent.Worker
 import kotlin.native.concurrent.freeze
@@ -47,6 +51,12 @@ internal class WorkerPool(private val numWorkers: Int) {
     /** Ensures consistent state when updating WeightedWorker and WorkerPool state */
     private val nextWorkerLock = Lock()
 
+    /** Held while cleaning up futures */
+    private val futureCleanupLock = Lock()
+
+    /** Futures from previous work, which are periodically cleaned up */
+    private val futures = AtomicReference(emptyList<Future<*>>().freeze())
+
     private fun nextWorker(): WeightedWorker = nextWorkerLock.withLock {
         workers.minWith(comparator = WeightedWorker.comparator)!!.apply {
             numBlocksQueue.increment()
@@ -64,12 +74,36 @@ internal class WorkerPool(private val numWorkers: Int) {
                 worker.numBlocksQueue.decrement()
             }
         }.freeze()
-        worker.worker.execute(TransferMode.SAFE, { Pair(work.freeze(), workerCompleteBlock) }) { (work, complete) ->
+        val future = worker.worker.execute(
+            TransferMode.SAFE,
+            { Pair(work.freeze(), workerCompleteBlock) }) { (work, complete) ->
             try {
                 work()
             } finally {
                 complete()
             }
+        }
+        cleanupFinishedFuturesAndAdd(future)
+    }
+
+    private fun cleanupFinishedFuturesAndAdd(futureToAdd: Future<*>) {
+        futureCleanupLock.withLock {
+            val futuresToKeep = mutableListOf(futureToAdd)
+            futuresToKeep.add(futureToAdd)
+            for (future in futures.value) {
+                if (future.state == FutureState.SCHEDULED) {
+                    // still waiting; check back on it later
+                    futuresToKeep.add(future)
+                    continue
+                }
+                // we're not keeping this future; consume it to free its internal resourcOes
+                try {
+                    // consume the future to clean it up
+                    future.consume { }
+                } catch (_: Throwable) { /* ignore thrown results */
+                }
+            }
+            futures.value = futuresToKeep.freeze()
         }
     }
 

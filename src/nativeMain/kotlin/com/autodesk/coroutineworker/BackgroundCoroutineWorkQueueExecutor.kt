@@ -11,8 +11,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.native.concurrent.AtomicInt
-import kotlin.native.concurrent.freeze
 import kotlin.native.concurrent.SharedImmutable
+import kotlin.native.concurrent.freeze
 
 /**
  * Holds the hook for handling background uncaught exceptions
@@ -50,13 +50,17 @@ internal class BackgroundCoroutineWorkQueueExecutor<WorkItem : CoroutineWorkItem
     private val pool = WorkerPool(numWorkers)
 
     /** The number of workers actively processing blocks */
-    private val numActiveWorkers = AtomicInt(0)
+    private val _numActiveWorkers = AtomicInt(0)
+
+    /** Getter for _numActiveWorkers; useful for preventing leakage in tests */
+    val numActiveWorkers: Int
+        get() = _numActiveWorkers.value
 
     /** @return the next work item to process, if any */
     private fun dequeueWork(): WorkItem? = queueLock.withLock {
         if (queue.isEmpty()) {
             // worker is going to become inactive
-            numActiveWorkers.decrement()
+            _numActiveWorkers.decrement()
             null
         } else {
             queue.removeAt(0)
@@ -67,14 +71,14 @@ internal class BackgroundCoroutineWorkQueueExecutor<WorkItem : CoroutineWorkItem
     fun enqueueWork(item: WorkItem) = queueLock.withLock {
         queue.add(item)
         // start a worker if we have more workers to start
-        val activeWorkerCount = numActiveWorkers.value
+        val activeWorkerCount = _numActiveWorkers.value
         if (activeWorkerCount < numWorkers) {
             pool.performWork {
                 runBlocking {
                     processWorkItems()
                 }
             }
-            numActiveWorkers.increment()
+            _numActiveWorkers.increment()
         }
     }
 
@@ -107,8 +111,18 @@ internal class BackgroundCoroutineWorkQueueExecutor<WorkItem : CoroutineWorkItem
         /**
          * Sets the handler for uncaught exceptions encountered in work items
          */
-        fun setUnhandledExceptionHook(handler: (Throwable) -> Unit) {
+        internal fun setUnhandledExceptionHook(handler: (Throwable) -> Unit) {
             UNHANDLE_EXCEPTION_HOOK.value = handler.freeze()
         }
     }
+}
+
+/**
+ * Set handler for exceptions that would
+ * be bubbled up to the underlying Worker
+ *
+ * @param handler the lambda called with the thrown exception
+ */
+fun setUnhandledExceptionHook(handler: (Throwable) -> Unit) {
+    BackgroundCoroutineWorkQueueExecutor.setUnhandledExceptionHook(handler)
 }
