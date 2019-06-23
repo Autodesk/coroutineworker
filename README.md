@@ -32,7 +32,7 @@ val result = CoroutineWorker.performAndWait {
   // the result of the work at the end of this lambda
   1
 }
-print(val) // prints 1
+print(result) // prints 1
 ```
 
 ### Lower-Level Helpers
