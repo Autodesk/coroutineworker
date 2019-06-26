@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
+
 plugins {
     kotlin("multiplatform") version "1.3.40"
     id("org.jetbrains.dokka") version "0.9.18"
@@ -90,107 +92,91 @@ kotlin {
     }
 }
 
-//// iOS Test Runner
+// iOS Test Runner
+
+val ktlintConfig by configurations.creating
+
+dependencies {
+    ktlintConfig("com.pinterest:ktlint:0.32.0")
+}
+
+val ktlint by tasks.registering(JavaExec::class) {
+    group = "verification"
+    description = "Check Kotlin code style."
+    classpath = ktlintConfig
+    main = "com.pinterest.ktlint.Main"
+    args = listOf("src/**/*.kt")
+}
+
+val ktlintformat by tasks.registering(JavaExec::class) {
+    group = "formatting"
+    description = "Fix Kotlin code style deviations."
+    classpath = ktlintConfig
+    main = "com.pinterest.ktlint.Main"
+    args = listOf("-F", "src/**/*.kt")
+}
+
+tasks.getByName("check") {
+    configure {
+        dependsOn(ktlint)
+    }
+}
+
+val linkDebugTestIosSim by tasks.getting(KotlinNativeLink::class)
+val testIosSim by tasks.registering(Exec::class) {
+    group = "verification"
+    dependsOn(linkDebugTestIosSim)
+    executable = "xcrun"
+    setArgs(listOf(
+        "simctl",
+        "spawn",
+        "iPad Air 2",
+        linkDebugTestIosSim.outputFile.get()
+    ))
+}
+
+tasks.getByName("check") {
+    configure {
+        dependsOn(testIosSim)
+    }
+}
+
+// iOS publish
+
+fun getDeployVersion(): String {
+    val VERSION: String by project
+    val deployVersion: String? = project.findProperty("DEPLOY_VERSION")?.toString()
+    return deployVersion ?: VERSION
+}
+
+//afterEvaluate {
+//    publishing {
+//        publications {
+//            all {
+//                groupId = group
+//                version getDeployVersion()
+//                pom.withXml {
+//                    def root = asNode()
+//                    root.children().last() + {
+//                        resolveStrategy = Closure.DELEGATE_FIRST
 //
-//val simulatorName = "iPad Air 2"
-//val testExeTask by tasks.linkTestDebugExecutableIosX64
-//
-//tasks.register("testIos", Exec) {
-//    group = "verification"
-//    dependsOn testExeTask
-//    executable "xcrun"
-//    args = [
-//            "simctl",
-//            "spawn",
-//            simulatorName,
-//            testExeTask.outputFile.get()
-//    ]
-//}
-//
-//tasks.getByName("check") {
-//    configure {
-//        dependsOn "testIos"
-//    }
-//}
-//
-//    configurations {
-//        compileClasspath
-//        ktlint
-//    }
-//
-//    dependencies {
-//        ktlint "com.pinterest:ktlint:0.32.0"
-//    }
-//
-//    def ktlint = tasks.register("ktlint", JavaExec) {
-//    group = "verification"
-//    def ktlint_args = project.findProperty("ktlint_args") ?: "--reporter=plain?group_by_file --reporter=checkstyle,output=${buildDir}/ktlint.xml src/**/*.kt"
-//    description = "Check Kotlin code style."
-//    classpath = configurations.ktlint
-//    main = "com.pinterest.ktlint.Main"
-//    args ktlint_args.split()
-//}
-//
-//    check.configure {
-//        dependsOn ktlint
-//    }
-//
-//    tasks.register("ktlintFormat", JavaExec) {
-//        group = "formatting"
-//        description = "Fix Kotlin code style deviations."
-//        classpath = configurations.ktlint
-//        main = "com.pinterest.ktlint.Main"
-//        args "-F", "src/**/*.kt"
-//    }
-//
-//    def getDeployVersion() {
-//        return project.findProperty("DEPLOY_VERSION") ?: VERSION
-//    }
-//
-//    group = "com.autodesk"
-//    version = getDeployVersion()
-//
-//    afterEvaluate {
-//        publishing {
-//            publications {
-//                all {
-//                    groupId = group
-//                    version getDeployVersion()
-//                    pom.withXml {
-//                        def root = asNode()
-//                        root.children().last() + {
-//                            resolveStrategy = Closure.DELEGATE_FIRST
-//
-//                            description "Native coroutine-based workers"
-//                            name = project.name
-//                            url "https://github.com/autodesk/coroutineworker"
-//                            scm {
-//                                url "https://github.com/autodesk/coroutineworker"
-//                                connection "scm:git:git://github.com/autodesk/coroutineworker.git"
-//                                developerConnection "scm:git:ssh://git@github.com/autodesk/coroutineworker.git"
-//                            }
-//                            developers {
-//                                developer {
-//                                    id "autodesk"
-//                                    name = "Autodesk"
-//                                }
+//                        description 'Native coroutine-based workers'
+//                        name = project.name
+//                        url 'https://github.com/autodesk/coroutineworker'
+//                        scm {
+//                            url 'https://github.com/autodesk/coroutineworker'
+//                            connection 'scm:git:git://github.com/autodesk/coroutineworker.git'
+//                            developerConnection 'scm:git:ssh://git@github.com/autodesk/coroutineworker.git'
+//                        }
+//                        developers {
+//                            developer {
+//                                id 'autodesk'
+//                                name = 'Autodesk'
 //                            }
 //                        }
 //                    }
 //                }
 //            }
-//
-////TODO(basher): update for jcenter
-////        repositories {
-////            maven {
-////                credentials {
-////                    username
-////                    password
-////                }
-////                url = ""
-////            }
-////        }
 //        }
 //    }
 //}
-//
