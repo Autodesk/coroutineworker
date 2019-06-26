@@ -73,7 +73,7 @@ kotlin {
         val mingwX64Main by getting {
             kotlin.srcDirs("src/nativeMain/kotlin")
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:${coroutinesVersion}}")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:${coroutinesVersion}")
             }
         }
         val mingwX64Test by getting { kotlin.srcDir("src/nativeTest/kotlin") }
