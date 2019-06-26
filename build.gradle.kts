@@ -1,13 +1,8 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 
-val coroutinesVersion: String by project
-val dokkaVersion: String by project
-val kotlinVersion: String by project
-val statelyVersion: String by project
-
 plugins {
-    kotlin("multiplatform") version kotlinVersion
-    id("org.jetbrains.dokka") version dokkaVersion
+    kotlin("multiplatform") version "1.3.40"
+    id("org.jetbrains.dokka") version "0.9.18"
     id("maven-publish")
     id("signing")
 }
@@ -17,6 +12,11 @@ repositories {
     jcenter()
     mavenCentral()
 }
+
+val coroutinesVersion: String by project
+val dokkaVersion: String by project
+val kotlinVersion: String by project
+val statelyVersion: String by project
 
 kotlin {
     targets {
