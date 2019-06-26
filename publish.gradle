@@ -12,7 +12,7 @@ group 'com.autodesk'
 version getDeployVersion()
 
 def isReleaseBuild() {
-    return VERSION.contains('SNAPSHOT') == false
+    return getDeployVersion().contains('SNAPSHOT') == false
 }
 
 def getReleaseRepositoryUrl() {
