@@ -87,6 +87,13 @@ publishing {
                     description 'Native coroutine-based workers'
                     name project.name
                     url 'https://github.com/autodesk/coroutineworker'
+                    licenses {
+                        license {
+                            name 'The Apache Software License, Version 2.0'
+                            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                            distribution 'repo'
+                        }
+                    }
                     scm {
                         url 'https://github.com/autodesk/coroutineworker'
                         connection 'scm:git:git://github.com/autodesk/coroutineworker.git'
