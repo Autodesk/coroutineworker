@@ -1,5 +1,7 @@
 # CoroutineWorker
 
+[![Build Status](https://dev.azure.com/autodeskoss/coroutineworker/_apis/build/status/Autodesk.coroutineworker?branchName=master)](https://dev.azure.com/autodeskoss/coroutineworker/_build/latest?definitionId=1&branchName=master)
+
 ## Specs
 
 - Supported on Native and JVM
