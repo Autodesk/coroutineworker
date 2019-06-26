@@ -1,0 +1,107 @@
+buildscript {
+    ext."signing.keyId" = System.getenv("SIGNING_KEYID")
+    ext."signing.password" = System.getenv("SIGNING_PASSWORD")
+    ext."signing.secretKeyRingFile" = System.getenv("SIGNING_KEYRING")
+}
+
+def getDeployVersion() {
+    return project.findProperty('DEPLOY_VERSION') ?: VERSION
+}
+
+group 'com.autodesk'
+version getDeployVersion()
+
+def isReleaseBuild() {
+    return getDeployVersion().contains('SNAPSHOT') == false
+}
+
+def getReleaseRepositoryUrl() {
+    return hasProperty('RELEASE_REPOSITORY_URL') ? RELEASE_REPOSITORY_URL :
+            'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+}
+
+def getSnapshotRepositoryUrl() {
+    return hasProperty('SNAPSHOT_REPOSITORY_URL') ? SNAPSHOT_REPOSITORY_URL :
+            'https://oss.sonatype.org/content/repositories/snapshots/'
+}
+
+def getRepositoryUsername() {
+    return System.getenv('SONATYPE_USERNAME') ?: ''
+}
+
+def getRepositoryPassword() {
+    return System.getenv('SONATYPE_PASSWORD') ?: ''
+}
+
+task emptySourcesJar(type: Jar) {
+    classifier = 'sources'
+}
+
+//task javadocsJar(type: Jar, dependsOn: dokka) {
+//    classifier = 'javadoc'
+//    from dokka.outputDirectory
+//}
+
+publishing {
+    publications {
+        all {
+            groupId = group
+            version getDeployVersion()
+            pom.withXml {
+                def root = asNode()
+                root.children().last() + {
+                    resolveStrategy = Closure.DELEGATE_FIRST
+
+                    description 'Native coroutine-based workers'
+                    name project.name
+                    url 'https://github.com/autodesk/coroutineworker'
+                    scm {
+                        url 'https://github.com/autodesk/coroutineworker'
+                        connection 'scm:git:git://github.com/autodesk/coroutineworker.git'
+                        developerConnection 'scm:git:ssh://git@github.com/autodesk/coroutineworker.git'
+                    }
+                    developers {
+                        developer {
+                            id 'autodesk'
+                            name 'Autodesk'
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    afterEvaluate {
+        publications.getByName('kotlinMultiplatform') {
+            // Source jars are only created for platforms, not the common artifact.
+            artifact emptySourcesJar
+        }
+    }
+
+    repositories {
+        maven {
+            url isReleaseBuild() ? getReleaseRepositoryUrl() : getSnapshotRepositoryUrl()
+            credentials {
+                username getRepositoryUsername()
+                password getRepositoryPassword()
+            }
+        }
+    }
+}
+
+signing {
+    required { isReleaseBuild() }
+    sign(publishing.publications)
+}
+
+tasks.register('publishMac') {
+    dependsOn 'publishIosArm64PublicationToMavenRepository'
+    dependsOn 'publishIosX64PublicationToMavenRepository'
+    dependsOn 'publishJvmPublicationToMavenRepository'
+    dependsOn 'publishMetadataPublicationToMavenRepository'
+    dependsOn 'publishKotlinMultiplatformPublicationToMavenRepository'
+}
+
+tasks.register('publishWindows') {
+    dependsOn 'publishMingwX64PublicationToMavenRepository'
+}

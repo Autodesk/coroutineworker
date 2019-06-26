@@ -1,9 +1,15 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 
+val coroutinesVersion: String by project
+val dokkaVersion: String by project
+val kotlinVersion: String by project
+val statelyVersion: String by project
+
 plugins {
-    kotlin("multiplatform") version "1.3.40"
-    id("org.jetbrains.dokka") version "0.9.18"
+    kotlin("multiplatform") version kotlinVersion
+    id("org.jetbrains.dokka") version dokkaVersion
     id("maven-publish")
+    id("signing")
 }
 
 repositories {
@@ -11,11 +17,6 @@ repositories {
     jcenter()
     mavenCentral()
 }
-
-val coroutinesVersion: String by project
-val dokkaVersion: String by project
-val kotlinVersion: String by project
-val statelyVersion: String by project
 
 kotlin {
     targets {
@@ -141,42 +142,4 @@ tasks.getByName("check") {
     }
 }
 
-// iOS publish
-
-fun getDeployVersion(): String {
-    val VERSION: String by project
-    val deployVersion: String? = project.findProperty("DEPLOY_VERSION")?.toString()
-    return deployVersion ?: VERSION
-}
-
-//afterEvaluate {
-//    publishing {
-//        publications {
-//            all {
-//                groupId = group
-//                version getDeployVersion()
-//                pom.withXml {
-//                    def root = asNode()
-//                    root.children().last() + {
-//                        resolveStrategy = Closure.DELEGATE_FIRST
-//
-//                        description 'Native coroutine-based workers'
-//                        name = project.name
-//                        url 'https://github.com/autodesk/coroutineworker'
-//                        scm {
-//                            url 'https://github.com/autodesk/coroutineworker'
-//                            connection 'scm:git:git://github.com/autodesk/coroutineworker.git'
-//                            developerConnection 'scm:git:ssh://git@github.com/autodesk/coroutineworker.git'
-//                        }
-//                        developers {
-//                            developer {
-//                                id 'autodesk'
-//                                name = 'Autodesk'
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
+apply("publish.gradle")
