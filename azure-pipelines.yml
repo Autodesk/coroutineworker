@@ -1,12 +1,14 @@
 trigger:
   branches:
     include:
+      - 'master'
+pr:
+  branches:
+    include:
       - '*'
 
 strategy:
   matrix:
-    linux:
-      imageName: 'ubuntu-16.04'
     mac:
       imageName: 'macos-10.14'
     windows:
