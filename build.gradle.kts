@@ -1,4 +1,10 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
+import org.jetbrains.kotlin.konan.target.HostManager
+
+val coroutinesVersion by extra("1.3.0-M2")
+val dokkaVersion by extra("0.9.18")
+val kotlinVersion by extra("1.3.40")
+val statelyVersion by extra("0.7.3")
 
 plugins {
     kotlin("multiplatform") version "1.3.40"
@@ -13,17 +19,12 @@ repositories {
     mavenCentral()
 }
 
-val coroutinesVersion: String by project
-val dokkaVersion: String by project
-val kotlinVersion: String by project
-val statelyVersion: String by project
-
 kotlin {
     targets {
         jvm()
-        iosX64("iosSim")
-        iosArm64("iosDevice64")
-        mingwX64("mingw")
+        iosX64()
+        iosArm64()
+        mingwX64()
     }
 
     sourceSets {
@@ -55,33 +56,27 @@ kotlin {
                 implementation("org.jetbrains.kotlin:kotlin-test-junit:${kotlinVersion}")
             }
         }
-
-        val iosDevice64Main by getting {
+        val iosArm64Main by getting {
+            kotlin.srcDirs("src/nativeMain/kotlin")
             dependencies {
-                kotlin.srcDirs("src/nativeMain/kotlin")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:${coroutinesVersion}")
             }
         }
-        val iosDevice64Test by getting { kotlin.srcDir("src/cocoaTest/kotlin") }
-        val iosSimMain by getting {
+        val iosArm64Test by getting { kotlin.srcDir("src/nativeTest/kotlin") }
+        val iosX64Main by getting {
+            kotlin.srcDirs("src/nativeMain/kotlin")
             dependencies {
-                kotlin.srcDirs("src/nativeMain/kotlin")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:${coroutinesVersion}")
             }
         }
-        val iosSimTest by getting { kotlin.srcDir("src/cocoaTest/kotlin") }
-
-        val mingwMain by getting {
+        val iosX64Test by getting { kotlin.srcDir("src/nativeTest/kotlin") }
+        val mingwX64Main by getting {
+            kotlin.srcDirs("src/nativeMain/kotlin")
             dependencies {
-                kotlin.srcDirs(
-                    listOf(
-                        "src/nativeMain/kotlin",
-                        "src/mingwMain/kotlin"
-                    )
-                )
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:${coroutinesVersion}}")
             }
         }
+        val mingwX64Test by getting { kotlin.srcDir("src/nativeTest/kotlin") }
     }
 }
 
@@ -123,22 +118,26 @@ tasks.getByName("check") {
     }
 }
 
-val linkDebugTestIosSim by tasks.getting(KotlinNativeLink::class)
-val testIosSim by tasks.registering(Exec::class) {
-    group = "verification"
-    dependsOn(linkDebugTestIosSim)
-    executable = "xcrun"
-    setArgs(listOf(
-        "simctl",
-        "spawn",
-        "iPad Air 2",
-        linkDebugTestIosSim.outputFile.get()
-    ))
-}
+if (HostManager.hostIsMac) {
+    val linkDebugTestIosX64 by tasks.getting(KotlinNativeLink::class)
+    val testIosSim by tasks.registering(Exec::class) {
+        group = "verification"
+        dependsOn(linkDebugTestIosX64)
+        executable = "xcrun"
+        setArgs(
+            listOf(
+                "simctl",
+                "spawn",
+                "iPad Air 2",
+                linkDebugTestIosX64.outputFile.get()
+            )
+        )
+    }
 
-tasks.getByName("check") {
-    configure {
-        dependsOn(testIosSim)
+    tasks.getByName("check") {
+        configure {
+            dependsOn(testIosSim)
+        }
     }
 }
 
