@@ -103,5 +103,5 @@ tasks.register('publishMac') {
 }
 
 tasks.register('publishWindows') {
-    dependsOn 'publishMingwPublicationToMavenRepository'
+    dependsOn 'publishMingwX64PublicationToMavenRepository'
 }
