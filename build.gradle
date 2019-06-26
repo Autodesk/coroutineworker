@@ -29,6 +29,8 @@ apply plugin: 'kotlin-multiplatform'
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
+import org.jetbrains.kotlin.konan.target.HostManager
+
 kotlin {
     targets {
         jvm()
@@ -102,20 +104,22 @@ kotlin {
 def simulatorName = 'iPad Air 2'
 def testExeTask = linkTestDebugExecutableIosX64
 
-tasks.register("testIos", Exec) {
-    group = "verification"
-    dependsOn testExeTask
-    executable 'xcrun'
-    args = [
-            'simctl',
-            'spawn',
-            simulatorName,
-            testExeTask.outputFile.get()
-    ]
-}
+if (HostManager.hostIsMac) {
+    tasks.register("testIos", Exec) {
+        group = "verification"
+        dependsOn testExeTask
+        executable 'xcrun'
+        args = [
+                'simctl',
+                'spawn',
+                simulatorName,
+                testExeTask.outputFile.get()
+        ]
+    }
 
-check.configure {
-    dependsOn 'testIos'
+    check.configure {
+        dependsOn 'testIos'
+    }
 }
 
 configurations {
