@@ -1,13 +1,13 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 import org.jetbrains.kotlin.konan.target.HostManager
 
-val coroutinesVersion by extra("1.3.0-M2")
+val coroutinesVersion by extra("1.2.1")
 val dokkaVersion by extra("0.9.18")
-val kotlinVersion by extra("1.3.40")
-val statelyVersion by extra("0.7.3")
+val kotlinVersion by extra("1.3.31")
+val statelyVersion by extra("0.7.2")
 
 plugins {
-    kotlin("multiplatform") version "1.3.40"
+    kotlin("multiplatform") version "1.3.31"
     id("org.jetbrains.dokka") version "0.9.18"
     id("maven-publish")
     id("signing")
@@ -119,17 +119,17 @@ tasks.getByName("check") {
 }
 
 if (HostManager.hostIsMac) {
-    val linkDebugTestIosX64 by tasks.getting(KotlinNativeLink::class)
+    val linkTestDebugExecutableIosX64 by tasks.getting(KotlinNativeLink::class)
     val testIosSim by tasks.registering(Exec::class) {
         group = "verification"
-        dependsOn(linkDebugTestIosX64)
+        dependsOn(linkTestDebugExecutableIosX64)
         executable = "xcrun"
         setArgs(
             listOf(
                 "simctl",
                 "spawn",
                 "iPad Air 2",
-                linkDebugTestIosX64.outputFile.get()
+                linkTestDebugExecutableIosX64.outputFile.get()
             )
         )
     }
