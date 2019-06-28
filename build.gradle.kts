@@ -22,7 +22,7 @@ repositories {
 kotlin {
     targets {
         jvm()
-        iosX64("native")
+        iosX64()
         iosArm64()
         iosArm32()
         mingwX64()
@@ -44,7 +44,6 @@ kotlin {
                 implementation("co.touchlab:stately:$statelyVersion")
             }
         }
-
         val jvmMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib")
@@ -57,28 +56,22 @@ kotlin {
                 implementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion")
             }
         }
-        val nativeMain by getting {
+        val nativeMain by creating {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesVersion")
             }
         }
-        val nativeTest by getting {}
+        val nativeTest by creating {}
 
-        val iosArm64Main by getting {}
-        val iosArm64Test by getting {}
-
-        val iosArm32Main by getting {}
-        val iosArm32Test by getting {}
-
-        val mingwX64Main by getting {}
-        val mingwX64Test by getting {}
-
-        configure(listOf(iosArm64Main, iosArm32Main, mingwX64Main)) {
-            dependsOn(nativeMain)
+        listOf("iosX64", "iosArm64", "iosArm32", "mingwX64").forEach {
+            getByName("${it}Main") {
+                dependsOn(nativeMain)
+            }
+            getByName("${it}Test") {
+                dependsOn(nativeTest)
+            }
         }
-        configure(listOf(iosArm64Test, iosArm32Test, mingwX64Test)) {
-            dependsOn(nativeTest)
-        }
+
     }
 }
 
@@ -121,18 +114,18 @@ tasks.getByName("check") {
 
 // iOS Test Runner
 if (HostManager.hostIsMac) {
-    val linkDebugTestNative by tasks.getting(KotlinNativeLink::class)
+    val linkDebugTestIosX64 by tasks.getting(KotlinNativeLink::class)
     val testIosSim by tasks.registering(Exec::class) {
         group = "verification"
-        dependsOn(linkDebugTestNative)
+        dependsOn(linkDebugTestIosX64)
         executable = "xcrun"
         setArgs(
-                listOf(
-                        "simctl",
-                        "spawn",
-                        "iPad Air 2",
-                        linkDebugTestNative.outputFile.get()
-                )
+            listOf(
+                "simctl",
+                "spawn",
+                "iPad Air 2",
+                linkDebugTestIosX64.outputFile.get()
+            )
         )
     }
 
