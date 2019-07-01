@@ -1,13 +1,13 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 import org.jetbrains.kotlin.konan.target.HostManager
 
-val coroutinesVersion by extra("1.2.1")
+val coroutinesVersion by extra("1.2.2")
 val dokkaVersion by extra("0.9.18")
-val kotlinVersion by extra("1.3.31")
-val statelyVersion by extra("0.7.2")
+val kotlinVersion by extra("1.3.40")
+val statelyVersion by extra("0.7.3")
 
 plugins {
-    kotlin("multiplatform") version "1.3.31"
+    kotlin("multiplatform") version "1.3.40"
     id("org.jetbrains.dokka") version "0.9.18"
     id("maven-publish")
     id("signing")
@@ -24,6 +24,7 @@ kotlin {
         jvm()
         iosX64()
         iosArm64()
+        iosArm32()
         mingwX64()
     }
 
@@ -31,52 +32,46 @@ kotlin {
         commonMain {
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-common:${coroutinesVersion}")
-                implementation("co.touchlab:stately:${statelyVersion}")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-common:$coroutinesVersion")
+                implementation("co.touchlab:stately:$statelyVersion")
             }
         }
         commonTest {
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-test-common")
                 implementation("org.jetbrains.kotlin:kotlin-test-annotations-common")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-common:${coroutinesVersion}")
-                implementation("co.touchlab:stately:${statelyVersion}")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-common:$coroutinesVersion")
+                implementation("co.touchlab:stately:$statelyVersion")
             }
         }
-
-         val jvmMain by getting {
+        val jvmMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
             }
         }
         val jvmTest by getting {
             dependencies {
-                implementation("org.jetbrains.kotlin:kotlin-test:${kotlinVersion}")
-                implementation("org.jetbrains.kotlin:kotlin-test-junit:${kotlinVersion}")
+                implementation("org.jetbrains.kotlin:kotlin-test:$kotlinVersion")
+                implementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion")
             }
         }
-        val iosArm64Main by getting {
-            kotlin.srcDirs("src/nativeMain/kotlin")
+        val nativeMain by creating {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:${coroutinesVersion}")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesVersion")
             }
         }
-        val iosArm64Test by getting { kotlin.srcDir("src/nativeTest/kotlin") }
-        val iosX64Main by getting {
-            kotlin.srcDirs("src/nativeMain/kotlin")
-            dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:${coroutinesVersion}")
+        val nativeTest by creating {}
+
+        listOf("iosX64", "iosArm64", "iosArm32", "mingwX64").forEach {
+            getByName("${it}Main") {
+                dependsOn(nativeMain)
+            }
+            getByName("${it}Test") {
+                dependsOn(nativeTest)
             }
         }
-        val iosX64Test by getting { kotlin.srcDir("src/nativeTest/kotlin") }
-        val mingwX64Main by getting {
-            kotlin.srcDirs("src/nativeMain/kotlin")
-            dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:${coroutinesVersion}")
-            }
-        }
-        val mingwX64Test by getting { kotlin.srcDir("src/nativeTest/kotlin") }
+
     }
 }
 
@@ -88,7 +83,6 @@ kotlin {
     }
 }
 
-// iOS Test Runner
 
 val ktlintConfig by configurations.creating
 
@@ -118,18 +112,19 @@ tasks.getByName("check") {
     }
 }
 
+// iOS Test Runner
 if (HostManager.hostIsMac) {
-    val linkTestDebugExecutableIosX64 by tasks.getting(KotlinNativeLink::class)
+    val linkDebugTestIosX64 by tasks.getting(KotlinNativeLink::class)
     val testIosSim by tasks.registering(Exec::class) {
         group = "verification"
-        dependsOn(linkTestDebugExecutableIosX64)
+        dependsOn(linkDebugTestIosX64)
         executable = "xcrun"
         setArgs(
             listOf(
                 "simctl",
                 "spawn",
                 "iPad Air 2",
-                linkTestDebugExecutableIosX64.outputFile.get()
+                linkDebugTestIosX64.outputFile.get()
             )
         )
     }
