@@ -3,11 +3,11 @@ import org.jetbrains.kotlin.konan.target.HostManager
 
 val coroutinesVersion by extra("1.2.2")
 val dokkaVersion by extra("0.9.18")
-val kotlinVersion by extra("1.3.40")
+val kotlinVersion by extra("1.3.41")
 val statelyVersion by extra("0.7.3")
 
 plugins {
-    kotlin("multiplatform") version "1.3.40"
+    kotlin("multiplatform") version "1.3.41"
     id("org.jetbrains.dokka") version "0.9.18"
     id("maven-publish")
     id("signing")
