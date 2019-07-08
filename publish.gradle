@@ -135,6 +135,7 @@ signing {
 
 tasks.register('publishMac') {
     dependsOn 'publishIosArm64PublicationToMavenRepository'
+    dependsOn 'publishIosArm32PublicationToMavenRepository'
     dependsOn 'publishIosX64PublicationToMavenRepository'
     dependsOn 'publishJvmPublicationToMavenRepository'
     dependsOn 'publishMetadataPublicationToMavenRepository'
