@@ -7,7 +7,7 @@
 ## Specs
 
 - Supported on Native and JVM
-- Kotlin 1.3.31
+- Kotlin 1.3.41
 
 ## About
 
