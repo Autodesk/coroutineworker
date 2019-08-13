@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 import org.jetbrains.kotlin.konan.target.HostManager
 
-val coroutinesVersion by extra("1.3.0-M2")
+val coroutinesVersion by extra("1.3.0-RC2")
 val dokkaVersion by extra("0.9.18")
 val kotlinVersion by extra("1.3.41")
 val statelyVersion by extra("0.7.3")
@@ -123,6 +123,7 @@ if (HostManager.hostIsMac) {
             listOf(
                 "simctl",
                 "spawn",
+                "-s",
                 "iPad Air 2",
                 linkDebugTestIosX64.outputFile.get()
             )
