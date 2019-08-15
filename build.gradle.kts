@@ -106,10 +106,9 @@ val ktlintformat by tasks.registering(JavaExec::class) {
     args = listOf("-F", "src/**/*.kt")
 }
 
-tasks.getByName("check") {
-    configure {
-        dependsOn(ktlint)
-    }
+val checkTask = tasks.named("check")
+checkTask.configure {
+    dependsOn(ktlint)
 }
 
 // iOS Test Runner
@@ -130,10 +129,8 @@ if (HostManager.hostIsMac) {
         )
     }
 
-    tasks.getByName("check") {
-        configure {
-            dependsOn(testIosSim)
-        }
+    checkTask.configure {
+        dependsOn(testIosSim)
     }
 }
 
