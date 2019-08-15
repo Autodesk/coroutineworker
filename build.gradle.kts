@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
+import org.jetbrains.kotlin.gradle.tasks.KotlinTest
 import org.jetbrains.kotlin.konan.target.HostManager
 
 val coroutinesVersion by extra("1.3.0-RC2")
@@ -131,6 +132,15 @@ if (HostManager.hostIsMac) {
 
     checkTask.configure {
         dependsOn(testIosSim)
+    }
+}
+
+if (HostManager.hostIsMingw) {
+    val mingwTestTask = tasks.named<KotlinTest>("mingwX64Test")
+    mingwTestTask.configure {
+        // workaround for https://youtrack.jetbrains.net/issue/KT-33246
+        // remove at Kotlin 1.3.60
+        binaryResultsDirectory.set(binResultsDir)
     }
 }
 
