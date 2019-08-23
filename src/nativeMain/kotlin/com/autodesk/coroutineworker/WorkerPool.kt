@@ -17,7 +17,7 @@ private class WeightedWorker(
     /** Set to the pool's current sequence, each time it's used */
     val lastSequence = AtomicLong(0)
 
-    /** Set to the pool's current sequence, each time it's used */
+    /** Number of blocks queued on this worker */
     val numBlocksQueue = AtomicLong(0)
 
     companion object {
@@ -35,7 +35,7 @@ private class WeightedWorker(
  * A pool of Worker instances, which are used in order of least busy
  * and then least recently used.
  *
- * @param numWorkers the number of Worker instances to keep in the bool
+ * @property numWorkers the number of Worker instances to keep in the bool
  */
 internal class WorkerPool(private val numWorkers: Int) {
     /** The available workers */

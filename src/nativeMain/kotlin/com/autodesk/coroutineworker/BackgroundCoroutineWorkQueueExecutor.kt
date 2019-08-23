@@ -34,7 +34,7 @@ internal interface CoroutineWorkItem {
  * An executor that runs blocks in a CoroutineScope on a background
  * Worker (via a WorkerPool)
  *
- * @param numWorkers The number of workers needed in the pool
+ * @property numWorkers The number of workers needed in the pool
  */
 internal class BackgroundCoroutineWorkQueueExecutor<WorkItem : CoroutineWorkItem>(private val numWorkers: Int) {
 
