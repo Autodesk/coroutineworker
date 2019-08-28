@@ -1,10 +1,10 @@
 package com.autodesk.coroutineworker
 
 import kotlin.coroutines.CoroutineContext
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 
 actual class CoroutineWorker : CoroutineScope {

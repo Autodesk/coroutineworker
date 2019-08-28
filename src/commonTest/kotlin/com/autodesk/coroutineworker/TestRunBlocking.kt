@@ -1,10 +1,10 @@
 package com.autodesk.coroutineworker
 
 import co.touchlab.stately.ensureNeverFrozen
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.withTimeout
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.withTimeout
 
 fun <T> testRunBlocking(context: CoroutineContext = EmptyCoroutineContext, block: suspend CoroutineScope.() -> T): T {
     return runBlocking(context) {
