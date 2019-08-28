@@ -14,16 +14,21 @@ internal suspend fun waitAndDelayForCondition(condition: () -> Boolean) {
 
 actual suspend fun <T> threadSafeSuspendCallback(startAsync: (CompletionLambda<T>) -> CancellationLambda): T {
 
+    // this will contain the future result of the async work
     val futureResult = AtomicReference<Result<T>?>(null).freeze()
 
-    // call the block completion handler; get the cancellation handler and freeze it
+    // start the async work and pass it a completion handler
+    // it returns a closure to call if we get cancelled
     val cancellable = startAsync { result: Result<T> ->
         initRuntimeIfNeeded()
-        // freeze the ref and result and go back to the worker thread
+        // store the result in the AtomicReference, which
+        // signals that the work is complete
         futureResult.value = result.freeze()
     }
 
     try {
+        // wait for the result to appear, which signals that the
+        // work on the other thread is done
         waitAndDelayForCondition { futureResult.value != null }
 
         val result = futureResult.value
@@ -34,6 +39,8 @@ actual suspend fun <T> threadSafeSuspendCallback(startAsync: (CompletionLambda<T
         }
         return result.getOrThrow()
     } catch (e: CancellationException) {
+        // we were cancelled. cancel the work we
+        // were waiting on too
         cancellable()
         throw e
     }
