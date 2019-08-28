@@ -4,8 +4,8 @@ import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 actual class CoroutineWorker : CoroutineScope {
 
@@ -24,23 +24,14 @@ actual class CoroutineWorker : CoroutineScope {
     actual companion object {
 
         actual fun execute(block: suspend CoroutineScope.() -> Unit): CoroutineWorker {
-            return CoroutineWorker().also {
-                it.launch(block = block)
+            return CoroutineWorker().apply {
+                launch(block = block)
             }
         }
 
-        actual suspend fun <T> performAndWait(block: suspend CoroutineScope.() -> T): T {
+        actual suspend fun <T> performAndWait(newCoroutineContext: CoroutineContext, block: suspend CoroutineScope.() -> T): T {
             return CoroutineWorker().run {
-                val channel = Channel<Result<T>>()
-                launch {
-                    val result = runCatching {
-                        block()
-                    }
-                    channel.send(result)
-                }
-                val result = channel.receive()
-                channel.close()
-                result.getOrThrow()
+                withContext(newCoroutineContext, block)
             }
         }
     }

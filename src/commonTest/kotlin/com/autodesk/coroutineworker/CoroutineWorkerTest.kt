@@ -100,6 +100,34 @@ class CoroutineWorkerTest {
             assertNull(value)
         }
     }
+
+    @Test
+    fun `cancellation works across performAndWait boundary`() {
+        testRunBlocking {
+            val pwRunning = AtomicBoolean(false)
+            val pwCancelled = AtomicBoolean(false)
+            val job = CoroutineWorker.execute {
+                CoroutineWorker.performAndWait {
+                    var jobNotifiedStarted = false
+                    while (true) {
+                        try {
+                            delay(20)
+                        } catch (e: CancellationException) {
+                            pwCancelled.value = true
+                            throw e
+                        }
+                        if (!jobNotifiedStarted) {
+                            pwRunning.value = true
+                            jobNotifiedStarted = true
+                        }
+                    }
+                }
+            }
+            busyWaitForCondition { pwRunning.value }
+            job.cancelAndJoin()
+            busyWaitForCondition { pwCancelled.value }
+        }
+    }
 }
 
 private suspend fun busyWaitForCondition(cond: () -> Boolean) {
