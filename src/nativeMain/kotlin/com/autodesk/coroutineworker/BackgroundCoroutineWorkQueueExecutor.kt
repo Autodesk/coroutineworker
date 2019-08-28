@@ -5,14 +5,14 @@ import co.touchlab.stately.concurrency.AtomicReference
 import co.touchlab.stately.concurrency.Lock
 import co.touchlab.stately.concurrency.value
 import co.touchlab.stately.concurrency.withLock
+import kotlin.native.concurrent.AtomicInt
+import kotlin.native.concurrent.SharedImmutable
+import kotlin.native.concurrent.freeze
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlin.native.concurrent.AtomicInt
-import kotlin.native.concurrent.SharedImmutable
-import kotlin.native.concurrent.freeze
 
 /**
  * Holds the hook for handling background uncaught exceptions

@@ -4,14 +4,14 @@ import co.touchlab.stately.collections.frozenHashSet
 import co.touchlab.stately.concurrency.AtomicBoolean
 import co.touchlab.stately.concurrency.Lock
 import co.touchlab.stately.concurrency.withLock
+import kotlin.coroutines.CoroutineContext
+import kotlin.native.concurrent.SharedImmutable
+import kotlin.native.concurrent.freeze
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlin.coroutines.CoroutineContext
-import kotlin.native.concurrent.SharedImmutable
-import kotlin.native.concurrent.freeze
 
 /** Identity key used to identify CoroutineWorker information across threads */
 private typealias CoroutineWorkerIdentifier = Any
@@ -98,20 +98,14 @@ actual class CoroutineWorker {
         }
 
         actual suspend fun <T> performAndWait(block: suspend CoroutineScope.() -> T): T {
-            return CoroutineWorker().run {
-                // Use threadSafeSuspendCallback to safely do some work on
-                // the background thread and return to the current thread
-                val result = threadSafeSuspendCallback<T> { completion ->
-                    val workItem = WorkItem(identifier, completionHandler()) {
-                        val result = runCatching {
-                            block()
-                        }
-                        completion(result)
+            return threadSafeSuspendCallback<T> { completion ->
+                execute {
+                    val result = runCatching {
+                        block()
                     }
-                    executor.enqueueWork(workItem)
-                    return@threadSafeSuspendCallback { Unit }
+                    completion(result)
                 }
-                result
+                return@threadSafeSuspendCallback { Unit }
             }
         }
 
