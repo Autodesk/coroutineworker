@@ -77,5 +77,5 @@ Object detachment (i.e. [transferring object ownership](https://github.com/JetBr
 
 ### Tips for Working with Frozen State
 
-- Be careful about what your lambdas capture. Especially, watch for implicit references to `this`.
+- Be careful about what your frozen lambdas capture; those objects will be frozen too. Especially, watch for implicit references to `this`.
 - Call [`ensureNeverFrozen()`](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.native.concurrent/ensure-never-frozen.html) on objects that you don't expect to ever be frozen.
