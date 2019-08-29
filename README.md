@@ -11,9 +11,14 @@
 
 ## About
 
-This library helps unify and support coroutine background thread usage in common code for Kotlin/Native, until [kotlinx.coroutines has support for native, multi-threaded coroutines](https://github.com/Kotlin/kotlinx.coroutines/issues/462). This library doesn't support every use case (but could support more with your help!), but it does support some useful ones:
+CoroutineWorker helps support multi-threaded coroutine usage in common code that works in Kotlin/Native and on JVM until [kotlinx.coroutines has full support for native, multi-threaded coroutines](https://github.com/Kotlin/kotlinx.coroutines/issues/462).
+
+## Sample Usage
 
 ### Spawning Asynchronous Work
+
+Use `execute` to start background work from common code:
+
 ```kotlin
 val worker = CoroutineWorker.execute {
   // - In here, `this` is a `CoroutineScope`
@@ -30,20 +35,47 @@ worker.cancelAndJoin()
 
 ### Waiting on Asynchronous Work to Complete
 
+From a coroutine context (i.e. somewhere you can call a `suspend fun`), use `performAndWait` to kick off work to another thread. It will non-blocking/suspend wait for the cross-thread work to complete:
+
 ```kotlin
-val result = CoroutineWorker.performAndWait {
-  // This is similar to execute, but it returns
-  // the result of the work at the end of this lambda
-  1
+suspend fun doWork() {
+  val result = CoroutineWorker.performAndWait {
+    // This is similar to execute, but it returns
+    // the result of the work at the end of this lambda
+    1
+  }
+  print(result) // prints 1
 }
-print(result) // prints 1
 ```
 
-### Lower-Level Helpers
 
-- Use `threadSafeSuspendCallback` to bridge callback-style async work out to your platform back into your library as a `suspend fun` (see example usages in the library).
+### Waiting on Asynchronous Callback-based Work
 
-### Important Notes
+Use `threadSafeSuspendCallback` to bridge callback-style async work into your code as a `suspend fun`:
 
-- Closures passed to `execute` and `performAndWait` are automatically frozen, so be careful about what your closure captures (e.g. implicit references to `this`)!
+```kotlin
+
+suspend fun performNetworkFetch() {
+  val result = threadSafeSuspendCallback { completion ->
+    // example: fetch network data that isn't coroutine-compatible
+    fetchNetworkData { networkResult ->
+      // notify that async work is complete
+      completion(networkRestul)
+    }
+  }
+
+  // result is now available here
+}
+```
+
+## CoroutineWorker Prefers Frozen State
+
+Object detachment (i.e. [transferring object ownership](https://github.com/JetBrains/kotlin-native/blob/master/CONCURRENCY.md#object-transfer-and-freezing) from one thread to another) is relatively difficult to achieve (outside of simple scenarios) compared to working with objects that are frozen and immutable. Because of this, CoroutineWorker prefers taking the frozen, immutable route:
+
+- Lambdas passed to CoroutineWorker are automatically frozen when they are going to be passed across threads.
 - The result value from `performAndWait` is also frozen.
+
+### Tips for Working with Frozen State
+
+- Be careful about what your frozen lambdas capture; those objects will be frozen too. Especially, watch for implicit references to `this`.
+- Call [`ensureNeverFrozen()`](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.native.concurrent/ensure-never-frozen.html) on objects that you don't expect to ever be frozen.
