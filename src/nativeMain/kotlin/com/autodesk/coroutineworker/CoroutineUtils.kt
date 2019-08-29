@@ -17,14 +17,17 @@ actual suspend fun <T> threadSafeSuspendCallback(startAsync: (CompletionLambda<T
     // this will contain the future result of the async work
     val futureResult = AtomicReference<Result<T>?>(null).freeze()
 
-    // start the async work and pass it a completion handler
-    // it returns a closure to call if we get cancelled
-    val cancellable = startAsync { result: Result<T> ->
+    // create a frozen completion handler for the async work
+    val completion = { result: Result<T> ->
         initRuntimeIfNeeded()
         // store the result in the AtomicReference, which
         // signals that the work is complete
         futureResult.value = result.freeze()
-    }
+    }.freeze()
+
+    // start the async work and pass it a completion handler
+    // it returns a closure to call if we get cancelled
+    val cancellable = startAsync(completion)
 
     try {
         // wait for the result to appear, which signals that the
