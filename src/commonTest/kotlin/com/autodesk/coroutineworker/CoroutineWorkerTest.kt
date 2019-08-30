@@ -6,6 +6,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -30,8 +31,8 @@ class CoroutineWorkerTest {
     @Test
     fun `performAndWait across threads`() {
         testRunBlocking {
-            val ran = CoroutineWorker.performAndWait {
-                CoroutineWorker.performAndWait {
+            val ran = CoroutineWorker.withContext(Dispatchers.Default) {
+                CoroutineWorker.withContext(Dispatchers.Default) {
                     async { true }.await()
                 }
             }
@@ -93,7 +94,7 @@ class CoroutineWorkerTest {
     @Test
     fun `can return null values from performAndWait`() {
         testRunBlocking {
-            val value: Unit? = CoroutineWorker.performAndWait {
+            val value: Unit? = CoroutineWorker.withContext(Dispatchers.Default) {
                 delay(20)
                 null
             }

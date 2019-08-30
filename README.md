@@ -35,11 +35,11 @@ worker.cancelAndJoin()
 
 ### Waiting on Asynchronous Work to Complete
 
-From a coroutine context (i.e. somewhere you can call a `suspend fun`), use `performAndWait` to kick off work to another thread. It will non-blocking/suspend wait for the cross-thread work to complete:
+From a coroutine context (i.e. somewhere you can call a `suspend fun`), use `withContext` to kick off work to another thread. It will non-blocking/suspend wait for the cross-thread work to complete:
 
 ```kotlin
 suspend fun doWork() {
-  val result = CoroutineWorker.performAndWait {
+  val result = CoroutineWorker.withContext {
     // This is similar to execute, but it returns
     // the result of the work at the end of this lambda
     1
@@ -48,6 +48,7 @@ suspend fun doWork() {
 }
 ```
 
+This is like using `withContext` on JVM to switch coroutine contexts. You can also properly pass a dispatcher, which will be used on JVM: `withContext(Dispatchers.IO) { … }`. The idea here is that this will be easy to migrate when we do get multi-threaded coroutine support in Kotlin/Native.
 
 ### Waiting on Asynchronous Callback-based Work
 
@@ -73,7 +74,7 @@ suspend fun performNetworkFetch() {
 Object detachment (i.e. [transferring object ownership](https://github.com/JetBrains/kotlin-native/blob/master/CONCURRENCY.md#object-transfer-and-freezing) from one thread to another) is relatively difficult to achieve (outside of simple scenarios) compared to working with objects that are frozen and immutable. Because of this, CoroutineWorker prefers taking the frozen, immutable route:
 
 - Lambdas passed to CoroutineWorker are automatically frozen when they are going to be passed across threads.
-- The result value from `performAndWait` is also frozen.
+- The result value from `withContext` is also frozen.
 
 ### Tips for Working with Frozen State
 

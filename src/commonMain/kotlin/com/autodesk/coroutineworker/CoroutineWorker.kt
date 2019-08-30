@@ -1,6 +1,8 @@
 package com.autodesk.coroutineworker
 
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 /**
  * Encapsulates performing background work. On JVM, this use coroutines outright.
@@ -27,11 +29,31 @@ expect class CoroutineWorker {
         fun execute(block: suspend CoroutineScope.() -> Unit): CoroutineWorker
 
         /**
-         * Enqueues the background work to run, suspends while the work is in progress,
-         * and returns the result of that background work back to the calling thread
+         * Performs block in another CoroutineContext and waits for it to complete.
+         * This is similar to withContext in kotlinx.coroutines, with some caveats:
          *
-         * @param block The work block to execute in the background
+         * - Native: we cannot use kotlinx.coroutines.withContext because
+         *           the global Dispatchers do not work properly. Therefore,
+         *           the context argument is ignored, and the block is always
+         *           run on some other Worker in the Worker pool. This is the
+         *           most similar to switching contexts on JVM.
+         *
+         * - JVM: This has the same behavior as calling withContext in the JVM
+         *
+         * In the future when kotlinx.coroutines has support for native multi-threaded
+         * coroutines, this will make it easy to transition to kotlinx.coroutines.withContext
+         *
+         * @param jvmContext The context to switch to for JVM targets. For example,
+         *                   you might want to use Dispatchers.IO, as you would normally
+         *                   when doing blocking IO (for example) with coroutines.
+         * @param block The work block to execute
          */
-        suspend fun <T> performAndWait(block: suspend CoroutineScope.() -> T): T
+        suspend fun <T> withContext(jvmContext: CoroutineContext, block: suspend CoroutineScope.() -> T): T
     }
 }
+
+@Deprecated(
+    "Use withContext instead, which allows JVM to take advantage of specifying a dispatcher, such as Dispatchers.IO",
+    ReplaceWith("CoroutineWorker.withContext(Dispatchers.Default, block)", "kotlinx.coroutines.Dispatchers")
+)
+suspend fun <T> CoroutineWorker.Companion.performAndWait(block: suspend CoroutineScope.() -> T) = withContext(Dispatchers.Default, block)

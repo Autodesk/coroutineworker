@@ -97,7 +97,7 @@ actual class CoroutineWorker {
             }
         }
 
-        actual suspend fun <T> performAndWait(block: suspend CoroutineScope.() -> T): T {
+        actual suspend fun <T> withContext(jvmContext: CoroutineContext, block: suspend CoroutineScope.() -> T): T {
             return threadSafeSuspendCallback<T> { completion ->
                 execute {
                     val result = runCatching {
