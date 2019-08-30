@@ -29,7 +29,7 @@ class CoroutineWorkerTest {
     }
 
     @Test
-    fun `performAndWait across threads`() {
+    fun `withContext across threads`() {
         testRunBlocking {
             val ran = CoroutineWorker.withContext(Dispatchers.Default) {
                 CoroutineWorker.withContext(Dispatchers.Default) {
@@ -92,7 +92,7 @@ class CoroutineWorkerTest {
     }
 
     @Test
-    fun `can return null values from performAndWait`() {
+    fun `can return null values from withContext`() {
         testRunBlocking {
             val value: Unit? = CoroutineWorker.withContext(Dispatchers.Default) {
                 delay(20)
@@ -103,12 +103,12 @@ class CoroutineWorkerTest {
     }
 
     @Test
-    fun `cancellation works across performAndWait boundary`() {
+    fun `cancellation works across withContext boundary`() {
         testRunBlocking {
             val pwRunning = AtomicBoolean(false)
             val pwCancelled = AtomicBoolean(false)
             val job = CoroutineWorker.execute {
-                CoroutineWorker.performAndWait {
+                CoroutineWorker.withContext(Dispatchers.Default) {
                     var jobNotifiedStarted = false
                     while (true) {
                         try {
