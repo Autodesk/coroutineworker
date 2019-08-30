@@ -9,6 +9,28 @@
 - Supported on Native and JVM
 - Kotlin 1.3.41
 
+## Gradle
+
+To use in your multiplatform project, update your common dependencies in your gradle configuration:
+
+```groovy
+kotlin {
+    sourceSets {
+        commonMain {
+            dependencies {
+                implementation "com.autodesk:coroutineworker:0.2.2"
+            }
+        }
+    }
+}
+```
+
+CoroutineWorker uses gradle module metadata. We recommend adding the following to your settings.gradle to take advantage of that:
+
+```groovy
+enableFeaturePreview('GRADLE_METADATA')
+```
+
 ## About
 
 CoroutineWorker helps support multi-threaded coroutine usage in common code that works in Kotlin/Native and on JVM until [kotlinx.coroutines has full support for native, multi-threaded coroutines](https://github.com/Kotlin/kotlinx.coroutines/issues/462).
