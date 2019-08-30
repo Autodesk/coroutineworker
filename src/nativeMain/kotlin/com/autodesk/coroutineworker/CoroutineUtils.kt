@@ -1,5 +1,6 @@
 package com.autodesk.coroutineworker
 
+import co.touchlab.stately.concurrency.AtomicBoolean
 import co.touchlab.stately.concurrency.value
 import kotlin.native.concurrent.AtomicReference
 import kotlin.native.concurrent.freeze
@@ -17,12 +18,18 @@ actual suspend fun <T> threadSafeSuspendCallback(startAsync: (CompletionLambda<T
     // this will contain the future result of the async work
     val futureResult = AtomicReference<Result<T>?>(null).freeze()
 
+    // keep track of cancelled state, so that we
+    // can avoid updating the future when cancelled
+    val isCancelled = AtomicBoolean(false)
+
     // create a frozen completion handler for the async work
     val completion = { result: Result<T> ->
         initRuntimeIfNeeded()
-        // store the result in the AtomicReference, which
-        // signals that the work is complete
-        futureResult.value = result.freeze()
+        if (!isCancelled.value) {
+            // store the result in the AtomicReference, which
+            // signals that the work is complete
+            futureResult.value = result.freeze()
+        }
     }.freeze()
 
     // start the async work and pass it a completion handler
@@ -44,6 +51,7 @@ actual suspend fun <T> threadSafeSuspendCallback(startAsync: (CompletionLambda<T
     } catch (e: CancellationException) {
         // we were cancelled. cancel the work we
         // were waiting on too
+        isCancelled.value = true
         cancellable()
         throw e
     }
