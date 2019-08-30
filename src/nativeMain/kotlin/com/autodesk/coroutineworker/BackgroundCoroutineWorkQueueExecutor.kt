@@ -7,6 +7,7 @@ import co.touchlab.stately.concurrency.value
 import co.touchlab.stately.concurrency.withLock
 import kotlin.native.concurrent.AtomicInt
 import kotlin.native.concurrent.SharedImmutable
+import kotlin.native.concurrent.ensureNeverFrozen
 import kotlin.native.concurrent.freeze
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -75,6 +76,8 @@ internal class BackgroundCoroutineWorkQueueExecutor<WorkItem : CoroutineWorkItem
         if (activeWorkerCount < numWorkers) {
             pool.performWork {
                 runBlocking {
+                    // error if we accidentally freeze coroutine internals
+                    this.ensureNeverFrozen()
                     processWorkItems()
                 }
             }

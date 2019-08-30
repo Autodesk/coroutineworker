@@ -99,13 +99,13 @@ actual class CoroutineWorker {
 
         actual suspend fun <T> withContext(jvmContext: CoroutineContext, block: suspend CoroutineScope.() -> T): T {
             return threadSafeSuspendCallback<T> { completion ->
-                execute {
+                val job = execute {
                     val result = runCatching {
                         block()
                     }
                     completion(result)
                 }
-                return@threadSafeSuspendCallback { Unit }
+                return@threadSafeSuspendCallback { job.cancel() }
             }
         }
 
