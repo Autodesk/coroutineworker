@@ -18,7 +18,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation "com.autodesk:coroutineworker:0.2.2"
+                implementation "com.autodesk:coroutineworker:0.3.0"
             }
         }
     }
