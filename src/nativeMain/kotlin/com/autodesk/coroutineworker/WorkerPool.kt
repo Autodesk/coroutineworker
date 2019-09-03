@@ -1,13 +1,9 @@
 package com.autodesk.coroutineworker
 
-import co.touchlab.stately.concurrency.AtomicReference
 import co.touchlab.stately.concurrency.Lock
-import co.touchlab.stately.concurrency.value
 import co.touchlab.stately.concurrency.withLock
 import kotlin.native.concurrent.AtomicLong
-import kotlin.native.concurrent.Future
-import kotlin.native.concurrent.FutureState
-import kotlin.native.concurrent.TransferMode
+import kotlin.native.concurrent.SharedImmutable
 import kotlin.native.concurrent.Worker
 import kotlin.native.concurrent.freeze
 
@@ -21,7 +17,7 @@ private class WeightedWorker(
     /** Set to the pool's current sequence, each time it's used */
     val lastSequence = AtomicLong(0)
 
-    /** Set to the pool's current sequence, each time it's used */
+    /** Number of blocks queued on this worker */
     val numBlocksQueue = AtomicLong(0)
 
     companion object {
@@ -39,7 +35,7 @@ private class WeightedWorker(
  * A pool of Worker instances, which are used in order of least busy
  * and then least recently used.
  *
- * @param numWorkers the number of Worker instances to keep in the bool
+ * @property numWorkers the number of Worker instances to keep in the bool
  */
 internal class WorkerPool(private val numWorkers: Int) {
     /** The available workers */
@@ -50,12 +46,6 @@ internal class WorkerPool(private val numWorkers: Int) {
 
     /** Ensures consistent state when updating WeightedWorker and WorkerPool state */
     private val nextWorkerLock = Lock()
-
-    /** Held while cleaning up futures */
-    private val futureCleanupLock = Lock()
-
-    /** Futures from previous work, which are periodically cleaned up */
-    private val futures = AtomicReference(emptyList<Future<*>>().freeze())
 
     private fun nextWorker(): WeightedWorker = nextWorkerLock.withLock {
         workers.minWith(comparator = WeightedWorker.comparator)!!.apply {
@@ -69,42 +59,19 @@ internal class WorkerPool(private val numWorkers: Int) {
         val worker = nextWorker()
 
         // prepare the block to update state, when the worker is finished
-        val workerCompleteBlock = {
+        val workerCompleteBlock: () -> Unit = {
             nextWorkerLock.withLock {
                 worker.numBlocksQueue.decrement()
             }
-        }.freeze()
-        val future = worker.worker.execute(
-            TransferMode.SAFE,
-            { Pair(work.freeze(), workerCompleteBlock) }) { (work, complete) ->
+        }
+        val workerOperation: () -> Unit = {
             try {
                 work()
             } finally {
-                complete()
+                workerCompleteBlock()
             }
-        }
-        cleanupFinishedFuturesAndAdd(future)
-    }
-
-    private fun cleanupFinishedFuturesAndAdd(futureToAdd: Future<*>) {
-        futureCleanupLock.withLock {
-            val futuresToKeep = mutableListOf(futureToAdd)
-            futuresToKeep.add(futureToAdd)
-            for (future in futures.value) {
-                if (future.state == FutureState.SCHEDULED) {
-                    // still waiting; check back on it later
-                    futuresToKeep.add(future)
-                    continue
-                }
-                // we're not keeping this future; consume it to free its internal resourcOes
-                try {
-                    // consume the future to clean it up
-                    future.consume { }
-                } catch (_: Throwable) { /* ignore thrown results */
-                }
-            }
-            futures.value = futuresToKeep.freeze()
-        }
+        }.freeze()
+        worker.worker.executeAfter(operation = workerOperation)
     }
 
     init { freeze() }

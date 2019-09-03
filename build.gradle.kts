@@ -2,13 +2,13 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 import org.jetbrains.kotlin.gradle.tasks.KotlinTest
 import org.jetbrains.kotlin.konan.target.HostManager
 
-val coroutinesVersion by extra("1.3.0-RC2")
+val coroutinesVersion by extra("1.3.0")
 val dokkaVersion by extra("0.9.18")
-val kotlinVersion by extra("1.3.41")
-val statelyVersion by extra("0.7.3")
+val kotlinVersion by extra("1.3.50")
+val statelyVersion by extra("0.9.3")
 
 plugins {
-    kotlin("multiplatform") version "1.3.41"
+    kotlin("multiplatform") version "1.3.50"
     id("org.jetbrains.dokka") version "0.9.18"
     id("maven-publish")
     id("signing")
@@ -35,6 +35,7 @@ kotlin {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-common:$coroutinesVersion")
                 implementation("co.touchlab:stately:$statelyVersion")
+                implementation("co.touchlab:stately-collections:$statelyVersion")
             }
         }
         commonTest {
