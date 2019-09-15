@@ -26,6 +26,7 @@ kotlin {
         iosX64()
         iosArm64()
         iosArm32()
+        macosX64()
         mingwX64()
     }
 
@@ -65,7 +66,7 @@ kotlin {
         }
         val nativeTest by creating {}
 
-        listOf("iosX64", "iosArm64", "iosArm32", "mingwX64").forEach {
+        listOf("iosX64", "iosArm64", "iosArm32", "macosX64", "mingwX64").forEach {
             getByName("${it}Main") {
                 dependsOn(nativeMain)
             }
