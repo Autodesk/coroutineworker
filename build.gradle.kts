@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 import org.jetbrains.kotlin.gradle.tasks.KotlinTest
 import org.jetbrains.kotlin.konan.target.HostManager
 
-val coroutinesVersion by extra("1.3.0")
+val coroutinesVersion by extra("1.3.1")
 val dokkaVersion by extra("0.9.18")
 val kotlinVersion by extra("1.3.50")
 val statelyVersion by extra("0.9.3")
