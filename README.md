@@ -35,6 +35,10 @@ enableFeaturePreview('GRADLE_METADATA')
 
 CoroutineWorker helps support multi-threaded coroutine usage in common code that works in Kotlin/Native and on JVM until [kotlinx.coroutines has full support for native, multi-threaded coroutines](https://github.com/Kotlin/kotlinx.coroutines/issues/462).
 
+## Projects Using this on your Devices
+
+- [PlanGrid iOS & Android](https://plangrid.com)
+
 ## Sample Usage
 
 ### Spawning Asynchronous Work
