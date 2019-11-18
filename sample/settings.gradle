@@ -1,0 +1,4 @@
+rootProject.name = 'sample'
+
+
+enableFeaturePreview('GRADLE_METADATA')
