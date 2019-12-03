@@ -95,6 +95,10 @@ suspend fun performNetworkFetch() {
 }
 ```
 
+## Sample Project
+
+In the sample directory, there is a sample project that demonstrates adding CoroutineWorker to an iOS + JVM library. We just used the sample library from IntelliJ's template for a "Mobile Shared Library." In the sample is a function called `performWork` (common code) that takes a completion lambda and demonstrates `CoroutineWorker.execute`. In tests, we use K/N concurrency helpers from `co.touchlab.stately` to demonstrate capturing a result across threads in K/N and executing this function.
+
 ## CoroutineWorker Prefers Frozen State
 
 Object detachment (i.e. [transferring object ownership](https://github.com/JetBrains/kotlin-native/blob/master/CONCURRENCY.md#object-transfer-and-freezing) from one thread to another) is relatively difficult to achieve (outside of simple scenarios) compared to working with objects that are frozen and immutable. Because of this, CoroutineWorker prefers taking the frozen, immutable route:
