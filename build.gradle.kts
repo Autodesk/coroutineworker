@@ -2,13 +2,13 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 import org.jetbrains.kotlin.gradle.tasks.KotlinTest
 import org.jetbrains.kotlin.konan.target.HostManager
 
-val coroutinesVersion by extra("1.3.1")
+val coroutinesVersion by extra("1.3.2-1.3.60")
 val dokkaVersion by extra("0.9.18")
-val kotlinVersion by extra("1.3.50")
-val statelyVersion by extra("0.9.3")
+val kotlinVersion by extra("1.3.61")
+val statelyVersion by extra("0.9.4")
 
 plugins {
-    kotlin("multiplatform") version "1.3.50"
+    kotlin("multiplatform") version "1.3.61"
     id("org.jetbrains.dokka") version "0.9.18"
     id("maven-publish")
     id("signing")
