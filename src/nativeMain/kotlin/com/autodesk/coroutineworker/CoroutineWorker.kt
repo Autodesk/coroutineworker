@@ -3,6 +3,7 @@ package com.autodesk.coroutineworker
 import co.touchlab.stately.concurrency.Lock
 import co.touchlab.stately.concurrency.withLock
 import kotlin.coroutines.CoroutineContext
+import kotlin.native.concurrent.AtomicInt
 import kotlin.native.concurrent.freeze
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -13,17 +14,12 @@ actual class CoroutineWorker {
 
     /**
      * True, if the job was cancelled; false, otherwise.
-     * */
-    private val cancelled = AtomicBoolean(false)
-
-    /**
-     * True, if the job finished; false, otherwise.
-     * */
-    private val completed = AtomicBoolean(false)
+     */
+    private val state = CoroutineWorkerState()
 
     /**
      * Ensures consistency when setting completion state
-     * */
+     */
     private val completionLock = Lock()
 
     actual fun cancel() {
@@ -32,11 +28,11 @@ actual class CoroutineWorker {
 
     private fun cancelIfRunning(): Boolean {
         return completionLock.withLock {
-            if (completed.value) {
+            if (state.completed) {
                 return@withLock false
             }
             // signal that this job should cancel
-            cancelled.value = true
+            state.cancelled = true
             true
         }
     }
@@ -46,15 +42,15 @@ actual class CoroutineWorker {
             return
         }
         // repeated check and wait for the job to complete
-        waitAndDelayForCondition { completed.value }
+        waitAndDelayForCondition { state.completed }
     }
 
     private fun completionHandler(): () -> Unit {
         val lock = completionLock
-        val completed = completed
+        val state = state
         return {
             lock.withLock {
-                completed.value = true
+                state.completed = true
             }
         }
     }
@@ -74,8 +70,9 @@ actual class CoroutineWorker {
 
         actual fun execute(block: suspend CoroutineScope.() -> Unit): CoroutineWorker {
             return CoroutineWorker().also {
+                val state = it.state
                 executor.enqueueWork(WorkItem(
-                    it.cancelled,
+                    { state.cancelled },
                     it.completionHandler(),
                     block
                 ))
@@ -96,7 +93,7 @@ actual class CoroutineWorker {
 
         /** CoroutineWorker's CoroutineWorkItem class that listens for cancellation */
         private class WorkItem(
-            val cancelled: AtomicBoolean,
+            val cancelled: () -> Boolean,
             val notifyCompletion: () -> Unit,
             val block: suspend CoroutineScope.() -> Unit
         ) : CoroutineWorkItem {
@@ -116,10 +113,10 @@ actual class CoroutineWorker {
             }
 
             // repeatedly checks if the scope has been cancelled and cancels the scope if needed; bails out, when the job completes
-            private fun CoroutineScope.repeatedlyCheckForCancellation(context: CoroutineContext, cancelled: AtomicBoolean, completedGetter: () -> Boolean) {
+            private fun CoroutineScope.repeatedlyCheckForCancellation(context: CoroutineContext, cancelled: () -> Boolean, completedGetter: () -> Boolean) {
                 launch {
                     waitAndDelayForCondition {
-                        val cancelledValue = cancelled.value
+                        val cancelledValue = cancelled()
                         if (cancelledValue) {
                             context.cancel()
                         }
@@ -128,6 +125,58 @@ actual class CoroutineWorker {
                 }
             }
         }
+    }
+
+    init { freeze() }
+}
+
+private class CoroutineWorkerState {
+
+    /**
+     * The backing store for the state
+     */
+    private val value = AtomicInt(0)
+
+    /**
+     * True, if the job was cancelled; false, otherwise.
+     */
+    var cancelled: Boolean
+        get() = isSet(cancelledBit)
+        set(value) = updateValue(cancelledBit, value)
+
+    /**
+     * True, if the job finished; false, otherwise.
+     */
+    var completed: Boolean
+        get() = isSet(completedBit)
+        set(value) = updateValue(completedBit, value)
+
+    /**
+     * Updates the value with the bit, setting or un-setting it
+     */
+    private fun updateValue(bit: Int, set: Boolean) {
+        value.value = if (set) {
+            value.value or bit
+        } else {
+            value.value and bit.inv()
+        }
+    }
+
+    /**
+     * Returns whether or not the bit is set
+     */
+    private fun isSet(bit: Int) = (value.value and bit) == bit
+
+    companion object {
+        /**
+         * Cancelled bit
+         */
+        private const val cancelledBit = 1
+
+        /**
+         * Completed bit
+         */
+        private const val completedBit = 2
     }
 
     init { freeze() }
