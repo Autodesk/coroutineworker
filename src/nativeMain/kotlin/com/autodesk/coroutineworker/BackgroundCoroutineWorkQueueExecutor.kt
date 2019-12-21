@@ -50,15 +50,15 @@ internal class BackgroundCoroutineWorkQueueExecutor<WorkItem : CoroutineWorkItem
     /**
      * The wrapped (allow freezing and mutable access on single thread) queue of WorkItems
      */
-    private val wrappedQueue = AtomicReference<StableRef<WorkQueue<WorkItem>>?>(null)
+    private val wrappedQueue: StableRef<WorkQueue<WorkItem>> by lazy {
+        StableRef.create(WorkQueue<WorkItem>()).freeze()
+    }
 
     /**
      * The wrapped queue of WorkItems
      */
     private val queue: WorkQueue<WorkItem>
-        get() = wrappedQueue.value?.get() ?: WorkQueue<WorkItem>().also {
-            wrappedQueue.value = StableRef.create(it).freeze()
-        }
+        get() = wrappedQueue.get()
 
     /**
      * The number of workers actively processing blocks
