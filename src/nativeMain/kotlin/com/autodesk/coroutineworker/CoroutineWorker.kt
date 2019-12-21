@@ -1,7 +1,5 @@
 package com.autodesk.coroutineworker
 
-import co.touchlab.stately.concurrency.Lock
-import co.touchlab.stately.concurrency.withLock
 import kotlin.coroutines.CoroutineContext
 import kotlin.native.concurrent.AtomicInt
 import kotlin.native.concurrent.freeze
@@ -17,24 +15,17 @@ actual class CoroutineWorker {
      */
     private val state = CoroutineWorkerState()
 
-    /**
-     * Ensures consistency when setting completion state
-     */
-    private val completionLock = Lock()
-
     actual fun cancel() {
         cancelIfRunning()
     }
 
     private fun cancelIfRunning(): Boolean {
-        return completionLock.withLock {
-            if (state.completed) {
-                return@withLock false
-            }
-            // signal that this job should cancel
-            state.cancelled = true
-            true
+        if (state.completed) {
+            return false
         }
+        // signal that this job should cancel
+        state.cancelled = true
+        return true
     }
 
     actual suspend fun cancelAndJoin() {
@@ -43,16 +34,6 @@ actual class CoroutineWorker {
         }
         // repeated check and wait for the job to complete
         waitAndDelayForCondition { state.completed }
-    }
-
-    private fun completionHandler(): () -> Unit {
-        val lock = completionLock
-        val state = state
-        return {
-            lock.withLock {
-                state.completed = true
-            }
-        }
     }
 
     actual companion object {
@@ -73,7 +54,7 @@ actual class CoroutineWorker {
                 val state = it.state
                 executor.enqueueWork(WorkItem(
                     { state.cancelled },
-                    it.completionHandler(),
+                    { state.completed = true },
                     block
                 ))
             }
