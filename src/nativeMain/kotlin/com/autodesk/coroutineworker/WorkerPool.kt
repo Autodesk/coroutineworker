@@ -47,6 +47,7 @@ internal class WorkerPool(private val numWorkers: Int) {
         while (next == null) {
             next = workers.minWith(comparator = WeightedWorker.comparator)!!.takeIf {
                 val currentValue = it.numBlocksQueued.value
+                // try again, if numBlocksQueue was modified
                 it.numBlocksQueued.compareAndSet(currentValue, currentValue + 1)
             }
         }

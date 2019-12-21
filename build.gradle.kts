@@ -34,8 +34,6 @@ kotlin {
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-common:$coroutinesVersion")
-                implementation("co.touchlab:stately:$statelyVersion")
-                implementation("co.touchlab:stately-collections:$statelyVersion")
             }
         }
         commonTest {
