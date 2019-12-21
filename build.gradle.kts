@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.konan.target.HostManager
 
 val coroutinesVersion by extra("1.3.3")
 val dokkaVersion by extra("0.9.18")
-val statelyVersion by extra("0.9.4")
+val atomicfuVersion by extra("0.14.1")
 
 plugins {
     kotlin("multiplatform") version "1.3.61"
@@ -41,7 +41,7 @@ kotlin {
                 implementation("org.jetbrains.kotlin:kotlin-test-common")
                 implementation("org.jetbrains.kotlin:kotlin-test-annotations-common")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-common:$coroutinesVersion")
-                implementation("co.touchlab:stately:$statelyVersion")
+                implementation("org.jetbrains.kotlinx:atomicfu-native:$atomicfuVersion")
             }
         }
         val jvmMain by getting {

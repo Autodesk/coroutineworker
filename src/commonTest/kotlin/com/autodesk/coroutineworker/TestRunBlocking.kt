@@ -1,6 +1,5 @@
 package com.autodesk.coroutineworker
 
-import co.touchlab.stately.ensureNeverFrozen
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.CoroutineScope

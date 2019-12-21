@@ -97,7 +97,7 @@ suspend fun performNetworkFetch() {
 
 ## Sample Project
 
-In the sample directory, there is a sample project that demonstrates adding CoroutineWorker to an iOS + JVM library. We just used the sample library from IntelliJ's template for a "Mobile Shared Library." In the sample is a function called `performWork` (common code) that takes a completion lambda and demonstrates `CoroutineWorker.execute`. In tests, we use K/N concurrency helpers from `co.touchlab.stately` to demonstrate capturing a result across threads in K/N and executing this function.
+In the sample directory, there is a sample project that demonstrates adding CoroutineWorker to an iOS + JVM library. We just used the sample library from IntelliJ's template for a "Mobile Shared Library." In the sample is a function called `performWork` (common code) that takes a completion lambda and demonstrates `CoroutineWorker.execute`. In tests, we use K/N concurrency helpers from `kotlinx.atomicfu` to demonstrate capturing a result across threads in K/N and executing this function.
 
 ## CoroutineWorker Prefers Frozen State
 
