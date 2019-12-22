@@ -1,77 +1,39 @@
 package com.autodesk.coroutineworker
 
-import co.touchlab.stately.collections.frozenHashSet
-import co.touchlab.stately.concurrency.AtomicBoolean
-import co.touchlab.stately.concurrency.Lock
-import co.touchlab.stately.concurrency.withLock
 import kotlin.coroutines.CoroutineContext
-import kotlin.native.concurrent.SharedImmutable
+import kotlin.native.concurrent.AtomicInt
 import kotlin.native.concurrent.freeze
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
-/** Identity key used to identify CoroutineWorker information across threads */
-private typealias CoroutineWorkerIdentifier = Any
-
-/**
- * When there's an entry in this set, this means we are attempting to cancel
- * the worker associated with that CoroutineWorkerIdentifier
- * */
-@SharedImmutable
-private val CANCELLED_WORKERS = frozenHashSet<CoroutineWorkerIdentifier>()
-
 actual class CoroutineWorker {
 
-    /** Object whose identity is used to access associated data in the global thread-safe maps */
-    private val identifier = CoroutineWorkerIdentifier()
-
     /**
-     * True, if the job finished without being cancelled; false, otherwise.
-     * The work could either still be in progress or cancelled.
-     * */
-    private val finishedWithoutCancelling = AtomicBoolean(false)
-
-    /**
-     * Ensures consistency when setting completion state
-     * */
-    private val completionLock = Lock()
+     * True, if the job was cancelled; false, otherwise.
+     */
+    private val state = CoroutineWorkerState()
 
     actual fun cancel() {
         cancelIfRunning()
     }
 
     private fun cancelIfRunning(): Boolean {
-        return completionLock.withLock {
-            if (finishedWithoutCancelling.value) {
-                return@withLock false
-            }
-            // signal that this job should cancel
-            CANCELLED_WORKERS.add(identifier)
-            true
+        if (state.completed) {
+            return false
         }
+        // signal that this job should cancel
+        state.cancelled = true
+        return true
     }
 
     actual suspend fun cancelAndJoin() {
         if (!cancelIfRunning()) {
             return
         }
-        // repeated check and wait for cancellation to complete
-        waitAndDelayForCondition { !CANCELLED_WORKERS.contains(identifier) }
-    }
-
-    private fun completionHandler(): (Boolean) -> Unit {
-        val lock = completionLock
-        val identifier = identifier
-        val finishedWithoutCancelling = finishedWithoutCancelling
-        return { cancelled ->
-            lock.withLock {
-                CANCELLED_WORKERS.remove(identifier)
-                finishedWithoutCancelling.value = !cancelled
-            }
-        }
+        // repeated check and wait for the job to complete
+        waitAndDelayForCondition { state.completed }
     }
 
     actual companion object {
@@ -89,9 +51,10 @@ actual class CoroutineWorker {
 
         actual fun execute(block: suspend CoroutineScope.() -> Unit): CoroutineWorker {
             return CoroutineWorker().also {
+                val state = it.state
                 executor.enqueueWork(WorkItem(
-                    it.identifier,
-                    it.completionHandler(),
+                    { state.cancelled },
+                    { state.completed = true },
                     block
                 ))
             }
@@ -111,41 +74,90 @@ actual class CoroutineWorker {
 
         /** CoroutineWorker's CoroutineWorkItem class that listens for cancellation */
         private class WorkItem(
-            val identifier: CoroutineWorkerIdentifier,
-            val notifyCompletion: (Boolean) -> Unit,
+            val cancelled: () -> Boolean,
+            val notifyCompletion: () -> Unit,
             val block: suspend CoroutineScope.() -> Unit
         ) : CoroutineWorkItem {
             override val work: suspend CoroutineScope.() -> Unit
             init {
                 work = {
                     var completed = false
-                    var cancelled = false
                     try {
-                        repeatedlyCheckForCancellation(this.coroutineContext, identifier) { completed }
+                        repeatedlyCheckForCancellation(this.coroutineContext, cancelled) { completed }
                         // inside of a new CoroutineScope, so that child jobs are cancelled
                         coroutineScope(block)
-                    } catch (_: CancellationException) {
-                        cancelled = true
                     } finally {
                         completed = true
-                        notifyCompletion(cancelled)
+                        notifyCompletion()
                     }
                 }
             }
 
             // repeatedly checks if the scope has been cancelled and cancels the scope if needed; bails out, when the job completes
-            private fun CoroutineScope.repeatedlyCheckForCancellation(context: CoroutineContext, scope: CoroutineWorkerIdentifier, completedGetter: () -> Boolean) {
+            private fun CoroutineScope.repeatedlyCheckForCancellation(context: CoroutineContext, cancelled: () -> Boolean, completedGetter: () -> Boolean) {
                 launch {
                     waitAndDelayForCondition {
-                        val cancelled = CANCELLED_WORKERS.contains(scope)
-                        if (cancelled) {
+                        val cancelledValue = cancelled()
+                        if (cancelledValue) {
                             context.cancel()
                         }
-                        completedGetter() || cancelled
+                        completedGetter() || cancelledValue
                     }
                 }
             }
         }
+    }
+
+    init { freeze() }
+}
+
+private class CoroutineWorkerState {
+
+    /**
+     * The backing store for the state
+     */
+    private val value = AtomicInt(0)
+
+    /**
+     * True, if the job was cancelled; false, otherwise.
+     */
+    var cancelled: Boolean
+        get() = isSet(cancelledBit)
+        set(value) = updateValue(cancelledBit, value)
+
+    /**
+     * True, if the job finished; false, otherwise.
+     */
+    var completed: Boolean
+        get() = isSet(completedBit)
+        set(value) = updateValue(completedBit, value)
+
+    /**
+     * Updates the value with the bit, setting or un-setting it
+     */
+    private fun updateValue(bit: Int, set: Boolean) {
+        value.value = if (set) {
+            value.value or bit
+        } else {
+            value.value and bit.inv()
+        }
+    }
+
+    /**
+     * Returns whether or not the bit is set
+     */
+    private fun isSet(bit: Int) = (value.value and bit) == bit
+
+    companion object {
+        /**
+         * Cancelled bit
+         */
+        private const val cancelledBit = 1
+
+        /**
+         * Completed bit
+         */
+        private const val completedBit = 2
     }
 
     init { freeze() }

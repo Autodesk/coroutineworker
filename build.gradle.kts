@@ -4,7 +4,6 @@ import org.jetbrains.kotlin.konan.target.HostManager
 
 val coroutinesVersion by extra("1.3.2-1.3.60")
 val dokkaVersion by extra("0.9.18")
-val kotlinVersion by extra("1.3.61")
 val statelyVersion by extra("0.9.4")
 
 plugins {
@@ -55,8 +54,8 @@ kotlin {
         }
         val jvmTest by getting {
             dependencies {
-                implementation("org.jetbrains.kotlin:kotlin-test:$kotlinVersion")
-                implementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion")
+                implementation("org.jetbrains.kotlin:kotlin-test")
+                implementation("org.jetbrains.kotlin:kotlin-test-junit")
             }
         }
         val nativeMain by creating {
@@ -74,7 +73,6 @@ kotlin {
                 dependsOn(nativeTest)
             }
         }
-
     }
 }
 
@@ -90,7 +88,7 @@ kotlin {
 val ktlintConfig by configurations.creating
 
 dependencies {
-    ktlintConfig("com.pinterest:ktlint:0.34.2")
+    ktlintConfig("com.pinterest:ktlint:0.35.0")
 }
 
 val ktlint by tasks.registering(JavaExec::class) {
