@@ -2,7 +2,6 @@ package com.autodesk.coroutineworker
 
 import co.touchlab.stately.concurrency.AtomicBoolean
 import kotlin.test.Test
-import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.coroutines.CancellationException
@@ -43,23 +42,19 @@ class CoroutineWorkerTest {
     @Test
     fun `job cancellation across threads`() {
         val started = AtomicBoolean(false)
-        val `continue` = AtomicBoolean(false)
-        val finished = AtomicBoolean(false)
+        val cancelled = AtomicBoolean(false)
         testRunBlocking {
             val job = CoroutineWorker.execute {
                 started.value = true
-                busyWaitForCondition { `continue`.value }
-                // one extra delay to give coroutine chance to resume
-                // with cancellation exception
-                var once = false
-                busyWaitForCondition { once.also { once = true } }
-                finished.value = true
+                try {
+                    busyWaitForCondition { false }
+                } catch (_: CancellationException) {
+                    cancelled.value = true
+                }
             }
             busyWaitForCondition { started.value }
             job.cancel()
-            `continue`.value = true
-            delay(20)
-            assertFalse(finished.value)
+            busyWaitForCondition { cancelled.value }
         }
     }
 

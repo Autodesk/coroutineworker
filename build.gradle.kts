@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 import org.jetbrains.kotlin.gradle.tasks.KotlinTest
 import org.jetbrains.kotlin.konan.target.HostManager
 
-val coroutinesVersion by extra("1.3.2-1.3.60")
+val coroutinesVersion by extra("1.3.3")
 val dokkaVersion by extra("0.9.18")
 val statelyVersion by extra("0.9.4")
 
@@ -34,8 +34,6 @@ kotlin {
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-common:$coroutinesVersion")
-                implementation("co.touchlab:stately:$statelyVersion")
-                implementation("co.touchlab:stately-collections:$statelyVersion")
             }
         }
         commonTest {

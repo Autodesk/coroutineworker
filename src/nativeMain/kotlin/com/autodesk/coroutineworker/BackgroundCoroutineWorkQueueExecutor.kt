@@ -1,14 +1,13 @@
 package com.autodesk.coroutineworker
 
-import co.touchlab.stately.collections.frozenLinkedList
-import co.touchlab.stately.concurrency.Lock
-import co.touchlab.stately.concurrency.value
-import co.touchlab.stately.concurrency.withLock
 import kotlin.native.concurrent.AtomicInt
 import kotlin.native.concurrent.AtomicReference
 import kotlin.native.concurrent.SharedImmutable
+import kotlin.native.concurrent.TransferMode
+import kotlin.native.concurrent.Worker
 import kotlin.native.concurrent.ensureNeverFrozen
 import kotlin.native.concurrent.freeze
+import kotlinx.cinterop.StableRef
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
@@ -19,7 +18,7 @@ import kotlinx.coroutines.runBlocking
  * Holds the hook for handling background uncaught exceptions
  */
 @SharedImmutable
-private val UNHANDLE_EXCEPTION_HOOK = AtomicReference<((Throwable) -> Unit)?>(null)
+private val UNHANDLED_EXCEPTION_HOOK = AtomicReference<((Throwable) -> Unit)?>(null)
 
 /**
  * Interface for a work item that can be queued to run in
@@ -39,38 +38,58 @@ internal interface CoroutineWorkItem {
 internal class BackgroundCoroutineWorkQueueExecutor<WorkItem : CoroutineWorkItem>(private val numWorkers: Int) {
 
     /**
-     * Locks access during enqueue and dequeue operations
-     * to ensure counts can be consistently read across threads
-     * */
-    private val queueLock = Lock()
-
-    /** The queue of WorkItems to execute */
-    private val queue = frozenLinkedList<WorkItem>()
-
-    /** The pool, on which blocks are executed */
+     * The pool, on which blocks are executed
+     */
     private val pool = WorkerPool(numWorkers)
 
-    /** The number of workers actively processing blocks */
+    /**
+     * Protects access to the queue on a single thread
+     */
+    private val queueThread = Worker.start()
+
+    /**
+     * The wrapped (allow freezing and mutable access on single thread) queue of WorkItems
+     */
+    private val wrappedQueue: StableRef<WorkQueue<WorkItem>> by lazy {
+        StableRef.create(WorkQueue<WorkItem>()).freeze()
+    }
+
+    /**
+     * The wrapped queue of WorkItems
+     */
+    private val queue: WorkQueue<WorkItem>
+        get() = wrappedQueue.get()
+
+    /**
+     * The number of workers actively processing blocks
+     */
     private val _numActiveWorkers = AtomicInt(0)
 
-    /** Getter for _numActiveWorkers; useful for preventing leakage in tests */
+    /**
+     * Getter for _numActiveWorkers; useful for preventing leakage in tests
+     */
     val numActiveWorkers: Int
         get() = _numActiveWorkers.value
 
-    /** @return the next work item to process, if any */
-    private fun dequeueWork(): WorkItem? = queueLock.withLock {
-        if (queue.isEmpty()) {
-            // worker is going to become inactive
-            _numActiveWorkers.decrement()
-            null
-        } else {
-            queue.removeAt(0)
+    /**
+     * Returns the next work item to process, if any
+     */
+    private fun dequeueWork(): WorkItem? = queueThread.execute(TransferMode.SAFE, { this }) {
+        with(it) {
+            queue.dequeue().also {
+                if (it == null) {
+                    // worker is going to become inactive
+                    _numActiveWorkers.decrement()
+                }
+            }
         }
-    }
+    }.result
 
-    /** Queues an item to be executed */
-    fun enqueueWork(item: WorkItem) = queueLock.withLock {
-        queue.add(item)
+    /**
+     * Queues an item to be executed
+     */
+    fun enqueueWork(item: WorkItem) = queueThread.executeAfter(operation = {
+        queue.enqueue(item)
         // start a worker if we have more workers to start
         val activeWorkerCount = _numActiveWorkers.value
         if (activeWorkerCount < numWorkers) {
@@ -83,7 +102,7 @@ internal class BackgroundCoroutineWorkQueueExecutor<WorkItem : CoroutineWorkItem
             }
             _numActiveWorkers.increment()
         }
-    }
+    }.freeze())
 
     suspend fun CoroutineScope.processWorkItems() {
         val workItem = dequeueWork() ?: return
@@ -96,7 +115,7 @@ internal class BackgroundCoroutineWorkQueueExecutor<WorkItem : CoroutineWorkItem
         } catch (_: CancellationException) {
             // ignore cancellation
         } catch (e: Throwable) {
-            val handler = UNHANDLE_EXCEPTION_HOOK.value
+            val handler = UNHANDLED_EXCEPTION_HOOK.value
             if (handler != null) {
                 handler(e)
             } else {
@@ -115,17 +134,65 @@ internal class BackgroundCoroutineWorkQueueExecutor<WorkItem : CoroutineWorkItem
          * Sets the handler for uncaught exceptions encountered in work items
          */
         internal fun setUnhandledExceptionHook(handler: (Throwable) -> Unit) {
-            UNHANDLE_EXCEPTION_HOOK.value = handler.freeze()
+            UNHANDLED_EXCEPTION_HOOK.value = handler.freeze()
         }
     }
 }
 
 /**
- * Set handler for exceptions that would
+ * Set [handler] for exceptions that would
  * be bubbled up to the underlying Worker
- *
- * @param handler the lambda called with the thrown exception
  */
 fun setUnhandledExceptionHook(handler: (Throwable) -> Unit) {
     BackgroundCoroutineWorkQueueExecutor.setUnhandledExceptionHook(handler)
+}
+
+/**
+ * Queue of workItems
+ */
+private class WorkQueue<WorkItem : Any> {
+
+    /**
+     * Node in the queue of work items
+     */
+    private class Node<WorkItem>(val workItem: WorkItem) {
+        /**
+         * Pointer to the next node
+         */
+        var next: Node<WorkItem>? = null
+    }
+
+    /**
+     * The head of the queue of WorkItems to execute
+     * */
+    private var queueHead: Node<WorkItem>? = null
+
+    /**
+     * The tail of the queue of WorkItems to execute
+     */
+    private var queueTail: Node<WorkItem>? = null
+
+    /**
+     * Enqueues a WorkItem
+     */
+    fun enqueue(item: WorkItem) {
+        val curTail = queueTail
+        queueTail = Node(item)
+        curTail?.next = queueTail
+        if (queueHead == null) {
+            queueHead = queueTail
+        }
+    }
+
+    /**
+     * De-queues a WorkItem
+     */
+    fun dequeue(): WorkItem? {
+        val curHead = queueHead ?: return null
+        queueHead = curHead.next
+        if (queueHead == null) {
+            queueTail = null
+        }
+        return curHead.workItem
+    }
 }
