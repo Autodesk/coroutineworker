@@ -1,9 +1,9 @@
 package com.autodesk.coroutineworker
 
-import co.touchlab.stately.concurrency.AtomicBoolean
 import kotlin.test.Test
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -14,7 +14,7 @@ class CoroutineWorkerTest {
 
     @Test
     fun `nested executes run with coroutines`() {
-        val ran = AtomicBoolean(false)
+        val ran = atomic(false)
         testRunBlocking {
             CoroutineWorker.execute {
                 CoroutineWorker.execute {
@@ -41,8 +41,8 @@ class CoroutineWorkerTest {
 
     @Test
     fun `job cancellation across threads`() {
-        val started = AtomicBoolean(false)
-        val cancelled = AtomicBoolean(false)
+        val started = atomic(false)
+        val cancelled = atomic(false)
         testRunBlocking {
             val job = CoroutineWorker.execute {
                 started.value = true
@@ -61,8 +61,8 @@ class CoroutineWorkerTest {
     @Test
     fun `cancelAndJoin waits for jobs to cancel`() {
         testRunBlocking {
-            val innerJobRunning = AtomicBoolean(false)
-            val innerCancelled = AtomicBoolean(false)
+            val innerJobRunning = atomic(false)
+            val innerCancelled = atomic(false)
             val job = CoroutineWorker.execute {
                 launch {
                     var jobNotifiedStarted = false
@@ -100,8 +100,8 @@ class CoroutineWorkerTest {
     @Test
     fun `cancellation works across withContext boundary`() {
         testRunBlocking {
-            val pwRunning = AtomicBoolean(false)
-            val pwCancelled = AtomicBoolean(false)
+            val pwRunning = atomic(false)
+            val pwCancelled = atomic(false)
             val job = CoroutineWorker.execute {
                 CoroutineWorker.withContext(Dispatchers.Default) {
                     var jobNotifiedStarted = false

@@ -1,8 +1,9 @@
 plugins {
-    id 'org.jetbrains.kotlin.multiplatform' version '1.3.50'
+    id 'org.jetbrains.kotlin.multiplatform' version '1.3.61'
 }
 repositories {
     mavenCentral()
+    jcenter()
 }
 group 'com.example'
 version '0.0.1'
@@ -22,14 +23,14 @@ kotlin {
         commonMain {
             dependencies {
                 implementation kotlin('stdlib-common')
-                implementation 'com.autodesk:coroutineworker:0.3.1'
+                implementation 'com.autodesk:coroutineworker:0.4.0'
             }
         }
         commonTest {
             dependencies {
                 implementation kotlin('test-common')
                 implementation kotlin('test-annotations-common')
-                implementation 'co.touchlab:stately:0.9.3'
+                implementation 'org.jetbrains.kotlinx:atomicfu-native:0.14.1'
             }
         }
         jvmMain {

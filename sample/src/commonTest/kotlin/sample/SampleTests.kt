@@ -1,7 +1,6 @@
 package sample
 
-import co.touchlab.stately.concurrency.AtomicReference
-import co.touchlab.stately.concurrency.value
+import kotlinx.atomicfu.atomic
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
@@ -14,7 +13,7 @@ class SampleTests {
     @Test
     fun testCoroutineWorkerCommonWork() {
         // setup an atomic ref to capture the result
-        val result = AtomicReference<Int?>(null)
+        val result = atomic<Int?>(null)
         // perform the background work
         performWork {
             // grab the result
