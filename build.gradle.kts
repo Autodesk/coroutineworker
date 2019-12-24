@@ -3,12 +3,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinTest
 import org.jetbrains.kotlin.konan.target.HostManager
 
 val coroutinesVersion by extra("1.3.3")
-val dokkaVersion by extra("0.9.18")
 val atomicfuVersion by extra("0.14.1")
 
 plugins {
     kotlin("multiplatform") version "1.3.61"
-    id("org.jetbrains.dokka") version "0.9.18"
+    id("org.jetbrains.dokka") version "0.10.0"
     id("maven-publish")
     id("signing")
 }
@@ -130,15 +129,6 @@ if (HostManager.hostIsMac) {
 
     checkTask.configure {
         dependsOn(testIosSim)
-    }
-}
-
-if (HostManager.hostIsMingw) {
-    val mingwTestTask = tasks.named<KotlinTest>("mingwX64Test")
-    mingwTestTask.configure {
-        // workaround for https://youtrack.jetbrains.net/issue/KT-33246
-        // remove at Kotlin 1.3.60
-        binaryResultsDirectory.set(binResultsDir)
     }
 }
 

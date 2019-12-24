@@ -8,32 +8,22 @@ group 'com.autodesk'
 version getDeployVersion()
 
 dokka {
-    impliedPlatforms = ['Common'] // This will force platform tags for all non-common sources e.g. 'JVM'
-    kotlinTasks {
-        // dokka fails to retrieve sources from MPP-tasks so they must be set empty to avoid exception
-        // use sourceRoot instead (see below)
-        []
-    }
-    packageOptions {
-        prefix = project.group
-    }
-    sourceRoot {
-        // assuming there is only a single source dir...
-        path = kotlin.sourceSets.commonMain.kotlin.srcDirs[0]
-        platforms = ['Common']
-    }
-    if (kotlin.sourceSets.getNames().contains('jvmMain')) {
-        sourceRoot {
-            // assuming there is only a single source dir...
-            path = kotlin.sourceSets.jvmMain.kotlin.srcDirs[0]
-            platforms = ['JVM']
+    multiplatform {
+        global {
+            perPackageOption {
+                prefix = project.group
+            }
         }
-    }
-    if (kotlin.sourceSets.getNames().contains('nativeMain')) {
-        sourceRoot {
-            // assuming there is only a single source dir...
-            path = kotlin.sourceSets.nativeMain.kotlin.srcDirs[0]
-            platforms = ['native']
+        common {}
+        jvm {}
+        register("native") {
+            platform = "native"
+            sourceRoot {
+                path = kotlin.sourceSets.nativeMain.kotlin.srcDirs[0]
+            }
+            sourceRoot {
+                path = kotlin.sourceSets.commonMain.kotlin.srcDirs[0]
+            }
         }
     }
 }

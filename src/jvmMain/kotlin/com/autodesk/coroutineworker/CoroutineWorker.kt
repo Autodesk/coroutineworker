@@ -6,10 +6,13 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 
-actual class CoroutineWorker : CoroutineScope {
+actual class CoroutineWorker internal actual constructor() : CoroutineScope {
 
     private val job = Job()
 
+    /**
+     * The context of this scope. See [CoroutineScope.coroutineContext]
+     */
     override val coroutineContext: CoroutineContext = job
 
     actual fun cancel() {

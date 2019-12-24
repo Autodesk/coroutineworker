@@ -30,10 +30,8 @@ internal interface CoroutineWorkItem {
 }
 
 /**
- * An executor that runs blocks in a CoroutineScope on a background
- * Worker (via a WorkerPool)
- *
- * @property numWorkers The number of workers needed in the pool
+ * An executor that runs blocks in a [kotlinx.coroutines.CoroutineScope] on a background
+ * Worker in a pool with [numWorkers] workers.
  */
 internal class BackgroundCoroutineWorkQueueExecutor<WorkItem : CoroutineWorkItem>(private val numWorkers: Int) {
 

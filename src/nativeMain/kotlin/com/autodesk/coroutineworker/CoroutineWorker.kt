@@ -8,7 +8,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
-actual class CoroutineWorker {
+actual class CoroutineWorker internal actual constructor() {
 
     /**
      * True, if the job was cancelled; false, otherwise.

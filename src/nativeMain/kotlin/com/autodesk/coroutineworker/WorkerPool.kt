@@ -31,9 +31,7 @@ private class WeightedWorker(
 
 /**
  * A pool of Worker instances, which are used in order of least busy
- * and then least recently used.
- *
- * @property numWorkers the number of Worker instances to keep in the bool
+ * and then least recently used. The pool will have [numWorkers] workers.
  */
 internal class WorkerPool(private val numWorkers: Int) {
     /** The available workers */
