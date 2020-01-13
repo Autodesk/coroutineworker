@@ -3,12 +3,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinTest
 import org.jetbrains.kotlin.konan.target.HostManager
 
 val coroutinesVersion by extra("1.3.3")
-val dokkaVersion by extra("0.9.18")
 val atomicfuVersion by extra("0.14.1")
 
 plugins {
     kotlin("multiplatform") version "1.3.61"
-    id("org.jetbrains.dokka") version "0.9.18"
+    id("org.jetbrains.dokka") version "0.10.0"
     id("maven-publish")
     id("signing")
 }
@@ -21,7 +20,13 @@ repositories {
 
 kotlin {
     targets {
-        jvm()
+        jvm {
+            compilations.all {
+                kotlinOptions {
+                    jvmTarget = "1.8"
+                }
+            }
+        }
         iosX64()
         iosArm64()
         iosArm32()
@@ -32,27 +37,26 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation("org.jetbrains.kotlin:kotlin-stdlib-common")
+                implementation(kotlin("stdlib-common"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesVersion")
             }
         }
         commonTest {
             dependencies {
-                implementation("org.jetbrains.kotlin:kotlin-test-common")
-                implementation("org.jetbrains.kotlin:kotlin-test-annotations-common")
+                implementation(kotlin("test-common"))
+                implementation(kotlin("test-annotations-common"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesVersion")
                 implementation("org.jetbrains.kotlinx:atomicfu-native:$atomicfuVersion")
             }
         }
         val jvmMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlin:kotlin-stdlib")
+                implementation(kotlin("stdlib-jdk8"))
             }
         }
         val jvmTest by getting {
             dependencies {
-                implementation("org.jetbrains.kotlin:kotlin-test")
-                implementation("org.jetbrains.kotlin:kotlin-test-junit")
+                implementation(kotlin("test-junit"))
             }
         }
         val nativeMain by creating {}
@@ -125,15 +129,6 @@ if (HostManager.hostIsMac) {
 
     checkTask.configure {
         dependsOn(testIosSim)
-    }
-}
-
-if (HostManager.hostIsMingw) {
-    val mingwTestTask = tasks.named<KotlinTest>("mingwX64Test")
-    mingwTestTask.configure {
-        // workaround for https://youtrack.jetbrains.net/issue/KT-33246
-        // remove at Kotlin 1.3.60
-        binaryResultsDirectory.set(binResultsDir)
     }
 }
 
