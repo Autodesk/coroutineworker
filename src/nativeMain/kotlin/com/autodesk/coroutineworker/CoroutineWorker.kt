@@ -136,11 +136,14 @@ private class CoroutineWorkerState {
      * Updates the value with the bit, setting or un-setting it
      */
     private fun updateValue(bit: Int, set: Boolean) {
-        value.value = if (set) {
-            value.value or bit
-        } else {
-            value.value and bit.inv()
-        }
+        do {
+            val old = value.value
+            val new = if (set) {
+                old or bit
+            } else {
+                old and bit.inv()
+            }
+        } while (!value.compareAndSet(old, new))
     }
 
     /**
