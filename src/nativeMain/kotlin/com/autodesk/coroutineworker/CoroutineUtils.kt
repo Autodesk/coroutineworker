@@ -1,9 +1,12 @@
 package com.autodesk.coroutineworker
 
+import kotlin.coroutines.ContinuationInterceptor
+import kotlin.coroutines.coroutineContext
 import kotlin.native.concurrent.AtomicInt
 import kotlin.native.concurrent.AtomicReference
 import kotlin.native.concurrent.freeze
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Delay
 import kotlinx.coroutines.delay
 
 internal suspend fun waitAndDelayForCondition(condition: () -> Boolean) {
@@ -12,7 +15,13 @@ internal suspend fun waitAndDelayForCondition(condition: () -> Boolean) {
     } while (!condition())
 }
 
+@UseExperimental(kotlinx.coroutines.InternalCoroutinesApi::class)
 actual suspend fun <T> threadSafeSuspendCallback(startAsync: (CompletionLambda<T>) -> CancellationLambda): T {
+    check(coroutineContext[ContinuationInterceptor] is Delay) {
+        """threadSafeSuspendCallback only works for CoroutineDispatchers that implement Delay.
+            |Implement Delay for your dispatcher or use runBlocking.
+        """.trimMargin()
+    }
 
     // this will contain the future result of the async work
     val futureResult = AtomicReference<Result<T>?>(null).freeze()

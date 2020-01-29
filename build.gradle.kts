@@ -27,21 +27,41 @@ kotlin {
                 }
             }
         }
-        iosX64()
-        iosArm64()
-        iosArm32()
-        macosX64()
-        mingwX64()
+        iosX64 {
+            val main by compilations.getting {
+                kotlinOptions.freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental")
+            }
+        }
+        iosArm64 {
+            val main by compilations.getting {
+                kotlinOptions.freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental")
+            }
+        }
+        iosArm32 {
+            val main by compilations.getting {
+                kotlinOptions.freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental")
+            }
+        }
+        macosX64 {
+            val main by compilations.getting {
+                kotlinOptions.freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental")
+            }
+        }
+        mingwX64 {
+            val main by compilations.getting {
+                kotlinOptions.freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental")
+            }
+        }
     }
 
     sourceSets {
-        commonMain {
+        val commonMain by getting {
             dependencies {
                 implementation(kotlin("stdlib-common"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesVersion")
             }
         }
-        commonTest {
+        val commonTest by getting {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
@@ -59,8 +79,12 @@ kotlin {
                 implementation(kotlin("test-junit"))
             }
         }
-        val nativeMain by creating {}
-        val nativeTest by creating {}
+        val nativeMain by creating {
+            dependsOn(commonMain)
+        }
+        val nativeTest by creating {
+            dependsOn(commonTest)
+        }
 
         listOf("iosX64", "iosArm64", "iosArm32", "macosX64", "mingwX64").forEach {
             getByName("${it}Main") {
