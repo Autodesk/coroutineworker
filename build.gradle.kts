@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 import org.jetbrains.kotlin.gradle.tasks.KotlinTest
 import org.jetbrains.kotlin.konan.target.HostManager
@@ -27,21 +28,30 @@ kotlin {
                 }
             }
         }
-        iosX64()
-        iosArm64()
-        iosArm32()
-        macosX64()
-        mingwX64()
+
+        val nativeTargets = mutableListOf<KotlinNativeTarget>()
+
+        iosX64() { nativeTargets.add(this) }
+        iosArm64() { nativeTargets.add(this) }
+        iosArm32() { nativeTargets.add(this) }
+        macosX64() { nativeTargets.add(this) }
+        mingwX64() { nativeTargets.add(this) }
+
+        nativeTargets.forEach {
+            val main by it.compilations.getting {
+                kotlinOptions.freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental")
+            }
+        }
     }
 
     sourceSets {
-        commonMain {
+        val commonMain by getting {
             dependencies {
                 implementation(kotlin("stdlib-common"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesVersion")
             }
         }
-        commonTest {
+        val commonTest by getting {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
@@ -59,8 +69,12 @@ kotlin {
                 implementation(kotlin("test-junit"))
             }
         }
-        val nativeMain by creating {}
-        val nativeTest by creating {}
+        val nativeMain by creating {
+            dependsOn(commonMain)
+        }
+        val nativeTest by creating {
+            dependsOn(commonTest)
+        }
 
         listOf("iosX64", "iosArm64", "iosArm32", "macosX64", "mingwX64").forEach {
             getByName("${it}Main") {
