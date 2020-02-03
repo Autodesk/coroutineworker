@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 import org.jetbrains.kotlin.gradle.tasks.KotlinTest
 import org.jetbrains.kotlin.konan.target.HostManager
@@ -27,28 +28,17 @@ kotlin {
                 }
             }
         }
-        iosX64 {
-            val main by compilations.getting {
-                kotlinOptions.freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental")
-            }
-        }
-        iosArm64 {
-            val main by compilations.getting {
-                kotlinOptions.freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental")
-            }
-        }
-        iosArm32 {
-            val main by compilations.getting {
-                kotlinOptions.freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental")
-            }
-        }
-        macosX64 {
-            val main by compilations.getting {
-                kotlinOptions.freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental")
-            }
-        }
-        mingwX64 {
-            val main by compilations.getting {
+
+        val nativeTargets = mutableListOf<KotlinNativeTarget>()
+
+        iosX64() { nativeTargets.add(this) }
+        iosArm64() { nativeTargets.add(this) }
+        iosArm32() { nativeTargets.add(this) }
+        macosX64() { nativeTargets.add(this) }
+        mingwX64() { nativeTargets.add(this) }
+
+        nativeTargets.forEach {
+            val main by it.compilations.getting {
                 kotlinOptions.freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental")
             }
         }
