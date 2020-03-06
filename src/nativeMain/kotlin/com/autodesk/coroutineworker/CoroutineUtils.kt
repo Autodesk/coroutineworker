@@ -15,7 +15,7 @@ internal suspend fun waitAndDelayForCondition(condition: () -> Boolean) {
     } while (!condition())
 }
 
-@UseExperimental(kotlinx.coroutines.InternalCoroutinesApi::class)
+@OptIn(kotlinx.coroutines.InternalCoroutinesApi::class)
 actual suspend fun <T> threadSafeSuspendCallback(startAsync: (CompletionLambda<T>) -> CancellationLambda): T {
     check(coroutineContext[ContinuationInterceptor] is Delay) {
         """threadSafeSuspendCallback only works for CoroutineDispatchers that implement Delay.
