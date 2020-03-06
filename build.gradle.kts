@@ -3,11 +3,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 import org.jetbrains.kotlin.gradle.tasks.KotlinTest
 import org.jetbrains.kotlin.konan.target.HostManager
 
-val coroutinesVersion by extra("1.3.3")
-val atomicfuVersion by extra("0.14.1")
+val coroutinesVersion = "1.3.4"
+val atomicfuVersion = "0.14.2"
 
 plugins {
-    kotlin("multiplatform") version "1.3.61"
+    kotlin("multiplatform") version "1.3.70"
     id("org.jetbrains.dokka") version "0.10.0"
     id("maven-publish")
     id("signing")
@@ -121,29 +121,6 @@ val ktlintformat by tasks.registering(JavaExec::class) {
 val checkTask = tasks.named("check")
 checkTask.configure {
     dependsOn(ktlint)
-}
-
-// iOS Test Runner
-if (HostManager.hostIsMac) {
-    val linkDebugTestIosX64 by tasks.getting(KotlinNativeLink::class)
-    val testIosSim by tasks.registering(Exec::class) {
-        group = "verification"
-        dependsOn(linkDebugTestIosX64)
-        executable = "xcrun"
-        setArgs(
-            listOf(
-                "simctl",
-                "spawn",
-                "-s",
-                "iPad Air 2",
-                linkDebugTestIosX64.outputFile.get()
-            )
-        )
-    }
-
-    checkTask.configure {
-        dependsOn(testIosSim)
-    }
 }
 
 apply("publish.gradle")
