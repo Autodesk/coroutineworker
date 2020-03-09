@@ -1,1 +1,1 @@
-rootProject.name = "CoroutineWorker"
+rootProject.name = "coroutineworker"
