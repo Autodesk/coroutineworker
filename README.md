@@ -1,6 +1,6 @@
 # CoroutineWorker
 
-[![Build Status](https://dev.azure.com/autodeskoss/coroutineworker/_apis/build/status/Autodesk.coroutineworker?branchName=master)](https://dev.azure.com/autodeskoss/coroutineworker/_build/latest?definitionId=1&branchName=master)
+[![Build Status](https://github.com/autodesk/coroutineworker/workflows/build/badge.svg)](https://github.com/autodesk/coroutineworker/actions?query=workflow%3Abuild)
 
 ![Maven Central](https://img.shields.io/maven-central/v/com.autodesk/coroutineworker.svg)
 
