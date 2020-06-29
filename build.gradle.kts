@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 import org.jetbrains.kotlin.gradle.tasks.KotlinTest
 import org.jetbrains.kotlin.konan.target.HostManager
 
-val coroutinesVersion = "1.3.4"
+val coroutinesVersion = "1.3.7"
 val atomicfuVersion = "0.14.2"
 
 plugins {
@@ -31,11 +31,11 @@ kotlin {
 
         val nativeTargets = mutableListOf<KotlinNativeTarget>()
 
-        iosX64() { nativeTargets.add(this) }
-        iosArm64() { nativeTargets.add(this) }
-        iosArm32() { nativeTargets.add(this) }
-        macosX64() { nativeTargets.add(this) }
-        mingwX64() { nativeTargets.add(this) }
+        iosX64 { nativeTargets.add(this) }
+        iosArm64 { nativeTargets.add(this) }
+        iosArm32 { nativeTargets.add(this) }
+        macosX64 { nativeTargets.add(this) }
+        mingwX64 { nativeTargets.add(this) }
 
         nativeTargets.forEach {
             val main by it.compilations.getting {
@@ -74,6 +74,14 @@ kotlin {
         }
         val nativeTest by creating {
             dependsOn(commonTest)
+        }
+
+        val appleMain by creating
+
+        listOf("iosX64", "iosArm64", "iosArm32", "macosX64").forEach {
+            getByName("${it}Main") {
+                dependsOn(appleMain)
+            }
         }
 
         listOf("iosX64", "iosArm64", "iosArm32", "macosX64", "mingwX64").forEach {
