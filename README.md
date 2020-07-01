@@ -7,7 +7,7 @@
 ## Specs
 
 - Supported on Native and JVM (feel free to contribute adding more targets)
-- Kotlin 1.3.70
+- Kotlin 1.3.72
 
 ## Gradle
 
@@ -18,14 +18,14 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation "com.autodesk:coroutineworker:0.5.0"
+                implementation "com.autodesk:coroutineworker:0.5.1"
             }
         }
     }
 }
 ```
 
-CoroutineWorker uses gradle module metadata. We recommend adding the following to your settings.gradle to take advantage of that:
+CoroutineWorker uses gradle module metadata. We recommend adding the following to your settings.gradle to take advantage of that (not necessary for Gradle 6+):
 
 ```groovy
 enableFeaturePreview('GRADLE_METADATA')
