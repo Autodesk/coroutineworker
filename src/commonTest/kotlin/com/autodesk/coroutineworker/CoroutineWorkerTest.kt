@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 class CoroutineWorkerTest {
 
     @Test
-    fun `nested executes run with coroutines`() {
+    fun nested_executes_run_with_coroutines() {
         val ran = atomic(false)
         testRunBlocking {
             CoroutineWorker.execute {
@@ -28,7 +28,7 @@ class CoroutineWorkerTest {
     }
 
     @Test
-    fun `withContext across threads`() {
+    fun withContext_across_threads() {
         testRunBlocking {
             val ran = CoroutineWorker.withContext(Dispatchers.Default) {
                 CoroutineWorker.withContext(Dispatchers.Default) {
@@ -40,7 +40,7 @@ class CoroutineWorkerTest {
     }
 
     @Test
-    fun `job cancellation across threads`() {
+    fun job_cancellation_across_threads() {
         val started = atomic(false)
         val cancelled = atomic(false)
         testRunBlocking {
@@ -59,7 +59,7 @@ class CoroutineWorkerTest {
     }
 
     @Test
-    fun `cancelAndJoin waits for jobs to cancel`() {
+    fun cancelAndJoin_waits_for_jobs_to_cancel() {
         testRunBlocking {
             val innerJobRunning = atomic(false)
             val innerCancelled = atomic(false)
@@ -87,7 +87,7 @@ class CoroutineWorkerTest {
     }
 
     @Test
-    fun `can return null values from withContext`() {
+    fun can_return_null_values_from_withContext() {
         testRunBlocking {
             val value: Unit? = CoroutineWorker.withContext(Dispatchers.Default) {
                 delay(20)
@@ -98,7 +98,7 @@ class CoroutineWorkerTest {
     }
 
     @Test
-    fun `cancellation works across withContext boundary`() {
+    fun cancellation_works_across_withContext_boundary() {
         testRunBlocking {
             val pwRunning = atomic(false)
             val pwCancelled = atomic(false)

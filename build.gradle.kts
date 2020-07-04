@@ -29,6 +29,16 @@ kotlin {
             }
         }
 
+        js {
+            compilations.all {
+                kotlinOptions {
+                    moduleKind = "commonjs"
+                }
+            }
+            browser()
+            nodejs()
+        }
+
         val nativeTargets = mutableListOf<KotlinNativeTarget>()
 
         iosX64 { nativeTargets.add(this) }
@@ -74,6 +84,11 @@ kotlin {
         }
         val nativeTest by creating {
             dependsOn(commonTest)
+        }
+        val jsTest by getting {
+            dependencies {
+                implementation(kotlin("test-js"))
+            }
         }
 
         val appleMain by creating
