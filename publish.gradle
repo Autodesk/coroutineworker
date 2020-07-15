@@ -131,6 +131,7 @@ tasks.register('publishMac') {
     dependsOn 'publishJvmPublicationToMavenRepository'
     dependsOn 'publishMetadataPublicationToMavenRepository'
     dependsOn 'publishKotlinMultiplatformPublicationToMavenRepository'
+    dependsOn 'publishJsPublicationToMavenRepository'
 }
 
 tasks.register('publishWindows') {
