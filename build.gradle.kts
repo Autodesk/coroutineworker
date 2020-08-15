@@ -1,7 +1,4 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
-import org.jetbrains.kotlin.gradle.tasks.KotlinTest
-import org.jetbrains.kotlin.konan.target.HostManager
 
 val coroutinesVersion = "1.3.9"
 val atomicfuVersion = "0.14.4"
@@ -101,7 +98,6 @@ kotlin {
     }
 }
 
-
 val ktlintConfig by configurations.creating
 
 dependencies {
@@ -121,7 +117,7 @@ val ktlintformat by tasks.registering(JavaExec::class) {
     description = "Fix Kotlin code style deviations."
     classpath = ktlintConfig
     main = "com.pinterest.ktlint.Main"
-    args = listOf("-F", "src/**/*.kt")
+    args = listOf("-F", "src/**/*.kt", "*.kts")
 }
 
 val checkTask = tasks.named("check")
