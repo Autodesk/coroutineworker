@@ -1,12 +1,12 @@
 package com.autodesk.coroutineworker
 
-import kotlin.coroutines.CoroutineContext
-import kotlin.native.concurrent.AtomicInt
-import kotlin.native.concurrent.freeze
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
+import kotlin.native.concurrent.AtomicInt
+import kotlin.native.concurrent.freeze
 
 actual class CoroutineWorker internal actual constructor() {
 
@@ -52,11 +52,13 @@ actual class CoroutineWorker internal actual constructor() {
         actual fun execute(block: suspend CoroutineScope.() -> Unit): CoroutineWorker {
             return CoroutineWorker().also {
                 val state = it.state
-                executor.enqueueWork(WorkItem(
-                    { state.cancelled },
-                    { state.completed = true },
-                    block
-                ))
+                executor.enqueueWork(
+                    WorkItem(
+                        { state.cancelled },
+                        { state.completed = true },
+                        block
+                    )
+                )
             }
         }
 

@@ -1,8 +1,8 @@
 package com.autodesk.coroutineworker
 
-import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Encapsulates performing background work. On JVM, this use coroutines outright.

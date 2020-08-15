@@ -1,13 +1,13 @@
 package com.autodesk.coroutineworker
 
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Delay
+import kotlinx.coroutines.delay
 import kotlin.coroutines.ContinuationInterceptor
 import kotlin.coroutines.coroutineContext
 import kotlin.native.concurrent.AtomicInt
 import kotlin.native.concurrent.AtomicReference
 import kotlin.native.concurrent.freeze
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Delay
-import kotlinx.coroutines.delay
 
 internal suspend fun waitAndDelayForCondition(condition: () -> Boolean) {
     do {

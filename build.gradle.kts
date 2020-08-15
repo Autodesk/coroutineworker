@@ -122,7 +122,7 @@ kotlin {
 val ktlintConfig by configurations.creating
 
 dependencies {
-    ktlintConfig("com.pinterest:ktlint:0.35.0")
+    ktlintConfig("com.pinterest:ktlint:0.37.2")
 }
 
 val ktlint by tasks.registering(JavaExec::class) {

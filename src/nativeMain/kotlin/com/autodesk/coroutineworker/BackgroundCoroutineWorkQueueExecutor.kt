@@ -1,5 +1,11 @@
 package com.autodesk.coroutineworker
 
+import kotlinx.cinterop.StableRef
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlin.native.concurrent.AtomicInt
 import kotlin.native.concurrent.AtomicReference
 import kotlin.native.concurrent.SharedImmutable
@@ -7,12 +13,6 @@ import kotlin.native.concurrent.TransferMode
 import kotlin.native.concurrent.Worker
 import kotlin.native.concurrent.ensureNeverFrozen
 import kotlin.native.concurrent.freeze
-import kotlinx.cinterop.StableRef
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 /**
  * Holds the hook for handling background uncaught exceptions
@@ -86,21 +86,23 @@ internal class BackgroundCoroutineWorkQueueExecutor<WorkItem : CoroutineWorkItem
     /**
      * Queues an item to be executed
      */
-    fun enqueueWork(item: WorkItem) = queueThread.executeAfter(operation = {
-        queue.enqueue(item)
-        // start a worker if we have more workers to start
-        val activeWorkerCount = _numActiveWorkers.value
-        if (activeWorkerCount < numWorkers) {
-            pool.performWork {
-                runBlocking {
-                    // error if we accidentally freeze coroutine internals
-                    this.ensureNeverFrozen()
-                    processWorkItems()
+    fun enqueueWork(item: WorkItem) = queueThread.executeAfter(
+        operation = {
+            queue.enqueue(item)
+            // start a worker if we have more workers to start
+            val activeWorkerCount = _numActiveWorkers.value
+            if (activeWorkerCount < numWorkers) {
+                pool.performWork {
+                    runBlocking {
+                        // error if we accidentally freeze coroutine internals
+                        this.ensureNeverFrozen()
+                        processWorkItems()
+                    }
                 }
+                _numActiveWorkers.increment()
             }
-            _numActiveWorkers.increment()
-        }
-    }.freeze())
+        }.freeze()
+    )
 
     suspend fun CoroutineScope.processWorkItems() {
         val workItem = dequeueWork() ?: return

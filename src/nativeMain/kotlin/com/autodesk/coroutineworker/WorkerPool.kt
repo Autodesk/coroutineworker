@@ -1,7 +1,6 @@
 package com.autodesk.coroutineworker
 
 import kotlin.native.concurrent.AtomicLong
-import kotlin.native.concurrent.SharedImmutable
 import kotlin.native.concurrent.Worker
 import kotlin.native.concurrent.freeze
 

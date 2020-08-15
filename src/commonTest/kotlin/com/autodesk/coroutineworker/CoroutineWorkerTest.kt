@@ -1,14 +1,14 @@
 package com.autodesk.coroutineworker
 
-import kotlin.test.Test
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.test.Test
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class CoroutineWorkerTest {
 
