@@ -19,7 +19,6 @@ private class WeightedWorker(
     val numBlocksQueued = AtomicLong(0)
 
     companion object {
-        @SharedImmutable
         val comparator = compareBy<WeightedWorker>(
             { it.numBlocksQueued.value },
             { it.lastSequence.value }
@@ -43,7 +42,7 @@ internal class WorkerPool(private val numWorkers: Int) {
     private fun nextWorker(): WeightedWorker {
         var next: WeightedWorker? = null
         while (next == null) {
-            next = workers.minWith(comparator = WeightedWorker.comparator)!!.takeIf {
+            next = workers.minWithOrNull(comparator = WeightedWorker.comparator)!!.takeIf {
                 val currentValue = it.numBlocksQueued.value
                 // try again, if numBlocksQueue was modified
                 it.numBlocksQueued.compareAndSet(currentValue, currentValue + 1)
