@@ -6,7 +6,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
-actual class CoroutineWorker internal actual constructor() : CoroutineScope {
+public actual class CoroutineWorker internal actual constructor() : CoroutineScope {
 
     private val job = Job()
 
@@ -15,23 +15,23 @@ actual class CoroutineWorker internal actual constructor() : CoroutineScope {
      */
     override val coroutineContext: CoroutineContext = job
 
-    actual fun cancel() {
+    public actual fun cancel() {
         job.cancel()
     }
 
-    actual suspend fun cancelAndJoin() {
+    public actual suspend fun cancelAndJoin() {
         job.cancelAndJoin()
     }
 
-    actual companion object {
+    public actual companion object {
 
-        actual fun execute(block: suspend CoroutineScope.() -> Unit): CoroutineWorker {
+        public actual fun execute(block: suspend CoroutineScope.() -> Unit): CoroutineWorker {
             return CoroutineWorker().also {
                 it.launch(block = block)
             }
         }
 
-        actual suspend fun <T> withContext(jvmContext: CoroutineContext, block: suspend CoroutineScope.() -> T): T {
+        public actual suspend fun <T> withContext(jvmContext: CoroutineContext, block: suspend CoroutineScope.() -> T): T {
             return kotlinx.coroutines.withContext(jvmContext) {
                 block()
             }

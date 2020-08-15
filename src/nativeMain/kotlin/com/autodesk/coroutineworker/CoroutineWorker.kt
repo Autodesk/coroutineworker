@@ -8,14 +8,14 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.native.concurrent.AtomicInt
 import kotlin.native.concurrent.freeze
 
-actual class CoroutineWorker internal actual constructor() {
+public actual class CoroutineWorker internal actual constructor() {
 
     /**
      * True, if the job was cancelled; false, otherwise.
      */
     private val state = CoroutineWorkerState()
 
-    actual fun cancel() {
+    public actual fun cancel() {
         cancelIfRunning()
     }
 
@@ -28,7 +28,7 @@ actual class CoroutineWorker internal actual constructor() {
         return true
     }
 
-    actual suspend fun cancelAndJoin() {
+    public actual suspend fun cancelAndJoin() {
         if (!cancelIfRunning()) {
             return
         }
@@ -36,20 +36,20 @@ actual class CoroutineWorker internal actual constructor() {
         waitAndDelayForCondition { state.completed }
     }
 
-    actual companion object {
+    public actual companion object {
 
         /**
          * Gets the number of active workers running in the underlying WorkerPool.
          * This is useful when testing, to ensure you don't leave workers running
          * across tests.
          */
-        val numActiveWorkers: Int
+        public val numActiveWorkers: Int
             get() = executor.numActiveWorkers
 
         /** The executor used for all BackgroundJobs */
         private val executor = BackgroundCoroutineWorkQueueExecutor<WorkItem>(4)
 
-        actual fun execute(block: suspend CoroutineScope.() -> Unit): CoroutineWorker {
+        public actual fun execute(block: suspend CoroutineScope.() -> Unit): CoroutineWorker {
             return CoroutineWorker().also {
                 val state = it.state
                 executor.enqueueWork(
@@ -62,7 +62,7 @@ actual class CoroutineWorker internal actual constructor() {
             }
         }
 
-        actual suspend fun <T> withContext(jvmContext: CoroutineContext, block: suspend CoroutineScope.() -> T): T {
+        public actual suspend fun <T> withContext(jvmContext: CoroutineContext, block: suspend CoroutineScope.() -> T): T {
             return threadSafeSuspendCallback<T> { completion ->
                 val job = execute {
                     val result = runCatching {

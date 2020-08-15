@@ -8,4 +8,4 @@ package com.autodesk.coroutineworker
  * when complete, and returns a [CancellationLambda] that can be called to cancel the
  * async work
  * */
-expect suspend fun <T> threadSafeSuspendCallback(startAsync: (CompletionLambda<T>) -> CancellationLambda): T
+public expect suspend fun <T> threadSafeSuspendCallback(startAsync: (CompletionLambda<T>) -> CancellationLambda): T
