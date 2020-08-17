@@ -17,6 +17,7 @@ repositories {
 }
 
 kotlin {
+    explicitApi()
     targets {
         jvm {
             compilations.all {

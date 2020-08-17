@@ -1,30 +1,29 @@
 package com.autodesk.coroutineworker
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlin.coroutines.CoroutineContext
 
 /**
  * Encapsulates performing background work. On JVM, this use coroutines outright.
  * In native, this uses Worker threads and manages its mutability/concurrency issues.
  */
-expect class CoroutineWorker internal constructor() {
+public expect class CoroutineWorker internal constructor() {
 
     /** Cancels the underlying Job */
-    fun cancel()
+    public fun cancel()
 
     /**
      * Cancel the underlying job/worker and waits for it
      * to receive its cancellation message or complete
      * */
-    suspend fun cancelAndJoin()
+    public suspend fun cancelAndJoin()
 
-    companion object {
+    public companion object {
 
         /**
          * Enqueues the background work [block] to run and returns a reference to the worker, which can be cancelled
          */
-        fun execute(block: suspend CoroutineScope.() -> Unit): CoroutineWorker
+        public fun execute(block: suspend CoroutineScope.() -> Unit): CoroutineWorker
 
         /**
          * Performs [block] in another [CoroutineContext] ([jvmContext]) and waits for it to complete.
@@ -38,12 +37,6 @@ expect class CoroutineWorker internal constructor() {
          *
          * - JVM: This has the same behavior as calling [kotlinx.coroutines.withContext] in the JVM
          */
-        suspend fun <T> withContext(jvmContext: CoroutineContext, block: suspend CoroutineScope.() -> T): T
+        public suspend fun <T> withContext(jvmContext: CoroutineContext, block: suspend CoroutineScope.() -> T): T
     }
 }
-
-@Deprecated(
-    "Use withContext instead, which allows JVM to take advantage of specifying a dispatcher, such as Dispatchers.IO",
-    ReplaceWith("CoroutineWorker.withContext(Dispatchers.Default, block)", "kotlinx.coroutines.Dispatchers")
-)
-suspend fun <T> CoroutineWorker.Companion.performAndWait(block: suspend CoroutineScope.() -> T) = withContext(Dispatchers.Default, block)

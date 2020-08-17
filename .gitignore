@@ -19,6 +19,7 @@ captures/
 .idea/
 !.idea/codeStyles/
 !.idea/copyright/
+!.idea/inspectionProfiles
 
 # ruby files
 .bundle

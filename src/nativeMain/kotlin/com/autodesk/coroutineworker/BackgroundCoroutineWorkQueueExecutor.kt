@@ -143,7 +143,7 @@ internal class BackgroundCoroutineWorkQueueExecutor<WorkItem : CoroutineWorkItem
  * Set [handler] for exceptions that would
  * be bubbled up to the underlying Worker
  */
-fun setUnhandledExceptionHook(handler: (Throwable) -> Unit) {
+public fun setUnhandledExceptionHook(handler: (Throwable) -> Unit) {
     BackgroundCoroutineWorkQueueExecutor.setUnhandledExceptionHook(handler)
 }
 

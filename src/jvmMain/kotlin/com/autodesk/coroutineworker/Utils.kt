@@ -2,7 +2,7 @@ package com.autodesk.coroutineworker
 
 import kotlinx.coroutines.suspendCancellableCoroutine
 
-actual suspend fun <T> threadSafeSuspendCallback(startAsync: (CompletionLambda<T>) -> CancellationLambda): T {
+public actual suspend fun <T> threadSafeSuspendCallback(startAsync: (CompletionLambda<T>) -> CancellationLambda): T {
     return suspendCancellableCoroutine { cont ->
         val cancellable = startAsync {
             if (!cont.isCancelled) {
