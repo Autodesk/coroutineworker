@@ -1,10 +1,10 @@
 package com.autodesk.coroutineworker
 
-import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 
 actual class CoroutineWorker internal actual constructor() : CoroutineScope {
 

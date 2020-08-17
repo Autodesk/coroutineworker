@@ -1,10 +1,10 @@
 package com.autodesk.coroutineworker
 
-import kotlin.test.assertNotSame
-import kotlin.test.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.junit.Test
+import kotlin.test.assertNotSame
+import kotlin.test.assertTrue
 
 class CoroutineWorkerJVMTest {
 

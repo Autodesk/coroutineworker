@@ -1,13 +1,10 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
-import org.jetbrains.kotlin.gradle.tasks.KotlinTest
-import org.jetbrains.kotlin.konan.target.HostManager
 
-val coroutinesVersion = "1.3.7"
-val atomicfuVersion = "0.14.2"
+val coroutinesVersion = "1.3.9"
+val atomicfuVersion = "0.14.4"
 
 plugins {
-    kotlin("multiplatform") version "1.3.70"
+    kotlin("multiplatform") version "1.4.0"
     id("org.jetbrains.dokka") version "0.10.0"
     id("maven-publish")
     id("signing")
@@ -57,26 +54,14 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(kotlin("stdlib-common"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
             }
         }
         val commonTest by getting {
             dependencies {
-                implementation(kotlin("test-common"))
-                implementation(kotlin("test-annotations-common"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesVersion")
-                implementation("org.jetbrains.kotlinx:atomicfu-native:$atomicfuVersion")
-            }
-        }
-        val jvmMain by getting {
-            dependencies {
-                implementation(kotlin("stdlib-jdk8"))
-            }
-        }
-        val jvmTest by getting {
-            dependencies {
-                implementation(kotlin("test-junit"))
+                implementation(kotlin("test-multiplatform"))
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
+                implementation("org.jetbrains.kotlinx:atomicfu:$atomicfuVersion")
             }
         }
         val nativeMain by creating {
@@ -84,11 +69,6 @@ kotlin {
         }
         val nativeTest by creating {
             dependsOn(commonTest)
-        }
-        val jsTest by getting {
-            dependencies {
-                implementation(kotlin("test-js"))
-            }
         }
 
         val appleMain by creating
@@ -118,11 +98,10 @@ kotlin {
     }
 }
 
-
 val ktlintConfig by configurations.creating
 
 dependencies {
-    ktlintConfig("com.pinterest:ktlint:0.35.0")
+    ktlintConfig("com.pinterest:ktlint:0.37.2")
 }
 
 val ktlint by tasks.registering(JavaExec::class) {
@@ -138,7 +117,7 @@ val ktlintformat by tasks.registering(JavaExec::class) {
     description = "Fix Kotlin code style deviations."
     classpath = ktlintConfig
     main = "com.pinterest.ktlint.Main"
-    args = listOf("-F", "src/**/*.kt")
+    args = listOf("-F", "src/**/*.kt", "*.kts")
 }
 
 val checkTask = tasks.named("check")
