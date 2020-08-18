@@ -27,7 +27,7 @@ kotlin {
             }
         }
 
-        js {
+        js(BOTH) {
             compilations.all {
                 kotlinOptions {
                     moduleKind = "commonjs"
