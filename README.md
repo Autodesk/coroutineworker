@@ -87,7 +87,7 @@ suspend fun performNetworkFetch() {
     // example: fetch network data that isn't coroutine-compatible
     fetchNetworkData { networkResult ->
       // notify that async work is complete
-      completion(networkRestul)
+      completion(networkResult)
     }
   }
 
