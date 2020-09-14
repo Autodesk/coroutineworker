@@ -162,7 +162,7 @@ internal class BackgroundCoroutineWorkQueueExecutor<WorkItem : CoroutineWorkItem
         /**
          * The name of the IO worker
          */
-        internal const val ioWorkerName = "com.autodesk.coroutineworker.ioworker"
+        private const val ioWorkerName = "com.autodesk.coroutineworker.ioworker"
 
         /**
          * Returns whether we're already running on the IO thread

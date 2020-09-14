@@ -3,7 +3,6 @@ package com.autodesk.coroutineworker
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Delay
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.delay
 import kotlin.coroutines.ContinuationInterceptor
