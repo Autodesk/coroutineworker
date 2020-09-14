@@ -1,9 +1,12 @@
 package com.autodesk.coroutineworker
 
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Delay
+import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.delay
 import kotlin.coroutines.ContinuationInterceptor
+import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 import kotlin.native.concurrent.AtomicInt
 import kotlin.native.concurrent.AtomicReference
@@ -62,5 +65,16 @@ public actual suspend fun <T> threadSafeSuspendCallback(startAsync: (CompletionL
         isCancelled.value = 1
         cancellable()
         throw e
+    }
+}
+
+/**
+ * Symbolic dispatcher used to trigger IO-bound-thread-like behavior on native
+ */
+public object IODispatcher : CoroutineDispatcher() {
+    override fun dispatch(context: CoroutineContext, block: Runnable) {
+        throw UnsupportedOperationException(
+            "This dispatcher is symbolic and should not be used to run anything."
+        )
     }
 }
