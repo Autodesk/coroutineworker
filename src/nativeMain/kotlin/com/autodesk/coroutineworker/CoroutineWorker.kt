@@ -50,6 +50,26 @@ public actual class CoroutineWorker internal actual constructor() {
         private val executor = BackgroundCoroutineWorkQueueExecutor<WorkItem>(4)
 
         public actual fun execute(block: suspend CoroutineScope.() -> Unit): CoroutineWorker {
+            return executeInternal(false, block)
+        }
+
+        public actual suspend fun <T> withContext(jvmContext: CoroutineContext, block: suspend CoroutineScope.() -> T): T {
+            val isIoWork = jvmContext == IODispatcher
+            if (isIoWork && BackgroundCoroutineWorkQueueExecutor.shouldPerformIoWorkInline()) {
+                return coroutineScope(block)
+            }
+            return threadSafeSuspendCallback<T> { completion ->
+                val job = executeInternal(isIoWork) {
+                    val result = runCatching {
+                        block()
+                    }
+                    completion(result)
+                }
+                return@threadSafeSuspendCallback { job.cancel() }
+            }
+        }
+
+        private fun executeInternal(isIoWork: Boolean, block: suspend CoroutineScope.() -> Unit): CoroutineWorker {
             return CoroutineWorker().also {
                 val state = it.state
                 executor.enqueueWork(
@@ -57,20 +77,9 @@ public actual class CoroutineWorker internal actual constructor() {
                         { state.cancelled },
                         { state.completed = true },
                         block
-                    )
+                    ),
+                    isIoWork
                 )
-            }
-        }
-
-        public actual suspend fun <T> withContext(jvmContext: CoroutineContext, block: suspend CoroutineScope.() -> T): T {
-            return threadSafeSuspendCallback<T> { completion ->
-                val job = execute {
-                    val result = runCatching {
-                        block()
-                    }
-                    completion(result)
-                }
-                return@threadSafeSuspendCallback { job.cancel() }
             }
         }
 

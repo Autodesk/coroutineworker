@@ -46,6 +46,11 @@ internal class BackgroundCoroutineWorkQueueExecutor<WorkItem : CoroutineWorkItem
     private val queueThread = Worker.start()
 
     /**
+     * Special worker for IO work
+     */
+    private val ioWorker = Worker.start(name = ioWorkerName)
+
+    /**
      * The wrapped (allow freezing and mutable access on single thread) queue of WorkItems
      */
     private val wrappedQueue: StableRef<WorkQueue<WorkItem>> by lazy {
@@ -84,32 +89,52 @@ internal class BackgroundCoroutineWorkQueueExecutor<WorkItem : CoroutineWorkItem
     }.result
 
     /**
-     * Queues an item to be executed
+     * Queues an item to be executed in the general worker pool
      */
-    fun enqueueWork(item: WorkItem) = queueThread.executeAfter(
-        operation = {
-            queue.enqueue(item)
-            // start a worker if we have more workers to start
-            val activeWorkerCount = _numActiveWorkers.value
-            if (activeWorkerCount < numWorkers) {
-                pool.performWork {
+    fun enqueueWork(item: WorkItem, isIoWork: Boolean) {
+        if (isIoWork) {
+            ioWorker.executeAfter(
+                operation = {
                     runBlocking {
-                        // error if we accidentally freeze coroutine internals
                         this.ensureNeverFrozen()
-                        processWorkItems()
+                        performWorkHandlingExceptions(item, this)
                     }
-                }
-                _numActiveWorkers.increment()
-            }
-        }.freeze()
-    )
+                }.freeze()
+            )
+        } else {
+            queueThread.executeAfter(
+                operation = {
+                    queue.enqueue(item)
+                    // start a worker if we have more workers to start
+                    val activeWorkerCount = _numActiveWorkers.value
+                    if (activeWorkerCount < numWorkers) {
+                        pool.performWork {
+                            runBlocking {
+                                // error if we accidentally freeze coroutine internals
+                                this.ensureNeverFrozen()
+                                processWorkItems(this)
+                            }
+                        }
+                        _numActiveWorkers.increment()
+                    }
+                }.freeze()
+            )
+        }
+    }
 
-    suspend fun CoroutineScope.processWorkItems() {
+    private suspend fun processWorkItems(scope: CoroutineScope) {
         val workItem = dequeueWork() ?: return
 
+        performWorkHandlingExceptions(workItem, scope)
+
+        // execute a coroutine to attempt to process the next work item, if possible
+        scope.launch { processWorkItems(scope) }
+    }
+
+    private suspend fun performWorkHandlingExceptions(workItem: WorkItem, scope: CoroutineScope) {
         // Execute the work in a job that can be cancelled
         try {
-            async {
+            scope.async {
                 workItem.work(this)
             }.await()
         } catch (_: CancellationException) {
@@ -122,9 +147,6 @@ internal class BackgroundCoroutineWorkQueueExecutor<WorkItem : CoroutineWorkItem
                 throw e
             }
         }
-
-        // execute a coroutine to attempt to process the next work item, if possible
-        launch { processWorkItems() }
     }
 
     init { freeze() }
@@ -136,6 +158,16 @@ internal class BackgroundCoroutineWorkQueueExecutor<WorkItem : CoroutineWorkItem
         internal fun setUnhandledExceptionHook(handler: (Throwable) -> Unit) {
             UNHANDLED_EXCEPTION_HOOK.value = handler.freeze()
         }
+
+        /**
+         * The name of the IO worker
+         */
+        internal const val ioWorkerName = "com.autodesk.coroutineworker.ioworker"
+
+        /**
+         * Returns whether we're already running on the IO thread
+         */
+        internal fun shouldPerformIoWorkInline() = Worker.current.name == ioWorkerName
     }
 }
 
