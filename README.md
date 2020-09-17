@@ -18,7 +18,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation "com.autodesk:coroutineworker:0.6.0"
+                implementation "com.autodesk:coroutineworker:0.6.2"
             }
         }
     }
@@ -110,3 +110,14 @@ Object detachment (i.e. [transferring object ownership](https://github.com/JetBr
 
 - Be careful about what your frozen lambdas capture; those objects will be frozen too. Especially, watch for implicit references to `this`.
 - Call [`ensureNeverFrozen()`](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.native.concurrent/ensure-never-frozen.html) on objects that you don't expect to ever be frozen.
+
+## IO-Bound Work
+
+In the JVM world, you typically write code like this for managing IO-bound work with coroutines:
+
+```
+withContext(Dispatchers.IO) {
+    // IO writes
+}
+```
+Similar behavior is supported in CoroutineWorker for Kotlin/Native via the `IODispatcher`. To use it in common code, make an `expect val Dispatchers.IO: CoroutineDispatcher` that returns `IODispatcher` for Kotlin/Native and `Dispatchers.IO` for JVM, and pass that to `CoroutineWorker.withContext` when performing IO-bound worker.
