@@ -137,6 +137,6 @@ tasks.register('publishWindows') {
 }
 
 tasks.register('publishLinux') {
-//TODO: add linux publish from other PR
+    dependsOn 'publishLinuxX64PublicationToMavenRepository'
 }
 
