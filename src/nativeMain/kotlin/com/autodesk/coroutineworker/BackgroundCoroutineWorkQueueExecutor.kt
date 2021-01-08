@@ -1,6 +1,5 @@
 package com.autodesk.coroutineworker
 
-import kotlinx.cinterop.StableRef
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
@@ -11,6 +10,7 @@ import kotlin.native.concurrent.AtomicReference
 import kotlin.native.concurrent.SharedImmutable
 import kotlin.native.concurrent.TransferMode
 import kotlin.native.concurrent.Worker
+import kotlin.native.concurrent.WorkerBoundReference
 import kotlin.native.concurrent.ensureNeverFrozen
 import kotlin.native.concurrent.freeze
 
@@ -53,15 +53,15 @@ internal class BackgroundCoroutineWorkQueueExecutor<WorkItem : CoroutineWorkItem
     /**
      * The wrapped (allow freezing and mutable access on single thread) queue of WorkItems
      */
-    private val wrappedQueue: StableRef<WorkQueue<WorkItem>> by lazy {
-        StableRef.create(WorkQueue<WorkItem>()).freeze()
+    private val wrappedQueue: WorkerBoundReference<WorkQueue<WorkItem>> by lazy {
+        WorkerBoundReference(WorkQueue<WorkItem>()).freeze()
     }
 
     /**
      * The wrapped queue of WorkItems
      */
     private val queue: WorkQueue<WorkItem>
-        get() = wrappedQueue.get()
+        get() = wrappedQueue.value
 
     /**
      * The number of workers actively processing blocks
