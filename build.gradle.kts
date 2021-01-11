@@ -4,7 +4,7 @@ val coroutinesVersion = "1.3.9"
 val atomicfuVersion = "0.14.4"
 
 plugins {
-    kotlin("multiplatform") version "1.4.10"
+    kotlin("multiplatform") version "1.4.21"
     id("org.jetbrains.dokka") version "0.10.0"
     id("maven-publish")
     id("signing")
@@ -103,7 +103,7 @@ kotlin {
 val ktlintConfig by configurations.creating
 
 dependencies {
-    ktlintConfig("com.pinterest:ktlint:0.37.2")
+    ktlintConfig("com.pinterest:ktlint:0.40.0")
 }
 
 val ktlint by tasks.registering(JavaExec::class) {
