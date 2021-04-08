@@ -1,10 +1,11 @@
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMetadataTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
-val coroutinesVersion = "1.3.9"
-val atomicfuVersion = "0.14.4"
+val coroutinesVersion = "1.4.3"
+val atomicfuVersion = "0.15.0"
 
 plugins {
-    kotlin("multiplatform") version "1.4.21"
+    kotlin("multiplatform") version "1.4.32"
     id("org.jetbrains.dokka") version "0.10.0"
     id("maven-publish")
     id("signing")
@@ -36,19 +37,28 @@ kotlin {
             browser()
             nodejs()
         }
+    }
 
-        val nativeTargets = mutableListOf<KotlinNativeTarget>()
+    iosX64()
+    iosArm64()
+    iosArm32()
+    macosX64()
+    mingwX64()
+    linuxX64()
 
-        iosX64 { nativeTargets.add(this) }
-        iosArm64 { nativeTargets.add(this) }
-        iosArm32 { nativeTargets.add(this) }
-        macosX64 { nativeTargets.add(this) }
-        mingwX64 { nativeTargets.add(this) }
-        linuxX64 { nativeTargets.add(this) }
+    targets.withType<KotlinNativeTarget> {
+        val main by compilations.getting {
+            kotlinOptions.freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn")
+        }
+    }
 
-        nativeTargets.forEach {
-            val main by it.compilations.getting {
-                kotlinOptions.freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental")
+    // do this in afterEvaluate, when nativeMain compilation becomes available
+    afterEvaluate {
+        targets.withType<KotlinMetadataTarget> {
+            for (compilation in compilations) {
+                if (compilation.name == "nativeMain") {
+                    compilation.kotlinOptions.freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn")
+                }
             }
         }
     }
@@ -103,7 +113,7 @@ kotlin {
 val ktlintConfig by configurations.creating
 
 dependencies {
-    ktlintConfig("com.pinterest:ktlint:0.40.0")
+    ktlintConfig("com.pinterest:ktlint:0.41.0")
 }
 
 val ktlint by tasks.registering(JavaExec::class) {

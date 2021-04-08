@@ -48,10 +48,6 @@ def getRepositoryPassword() {
     return System.getenv('SONATYPE_PASSWORD') ?: ''
 }
 
-task emptySourcesJar(type: Jar) {
-    classifier = 'sources'
-}
-
 task javadocsJar(type: Jar, dependsOn: dokka) {
     classifier = 'javadoc'
     from dokka.outputDirectory
@@ -94,13 +90,6 @@ publishing {
         }
     }
 
-    afterEvaluate {
-        publications.getByName('kotlinMultiplatform') {
-            // Source jars are only created for platforms, not the common artifact.
-            artifact emptySourcesJar
-        }
-    }
-
     repositories {
         maven {
             url isReleaseBuild() ? getReleaseRepositoryUrl() : getSnapshotRepositoryUrl()
@@ -127,7 +116,6 @@ tasks.register('publishMac') {
     dependsOn 'publishIosX64PublicationToMavenRepository'
     dependsOn 'publishMacosX64PublicationToMavenRepository'
     dependsOn 'publishJvmPublicationToMavenRepository'
-    dependsOn 'publishMetadataPublicationToMavenRepository'
     dependsOn 'publishKotlinMultiplatformPublicationToMavenRepository'
     dependsOn 'publishJsPublicationToMavenRepository'
 }
