@@ -1,11 +1,12 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMetadataTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.targets.js.KotlinJsTarget
 
-val coroutinesVersion = "1.4.3"
-val atomicfuVersion = "0.15.0"
+val coroutinesVersion = "1.5.0-RC"
+val atomicfuVersion = "0.16.1"
 
 plugins {
-    kotlin("multiplatform") version "1.4.32"
+    kotlin("multiplatform") version "1.5.0"
     id("org.jetbrains.dokka") version "0.10.0"
     id("maven-publish")
     id("signing")
@@ -52,6 +53,12 @@ kotlin {
         }
     }
 
+    targets.withType<org.jetbrains.kotlin.gradle.targets.js.KotlinJsTarget> {
+        val test by compilations.getting {
+            kotlinOptions.freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn")
+        }
+    }
+
     // do this in afterEvaluate, when nativeMain compilation becomes available
     afterEvaluate {
         targets.withType<KotlinMetadataTarget> {
@@ -71,7 +78,7 @@ kotlin {
         }
         val commonTest by getting {
             dependencies {
-                implementation(kotlin("test-multiplatform"))
+                implementation(kotlin("test"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
                 implementation("org.jetbrains.kotlinx:atomicfu:$atomicfuVersion")
             }
