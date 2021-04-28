@@ -7,7 +7,7 @@
 ## Specs
 
 - Supported on Native, JVM, and JS (legacy and IR) (feel free to contribute adding more targets)
-- Kotlin 1.4.0
+- Kotlin 1.5.0
 
 ## Gradle
 
@@ -18,7 +18,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation "com.autodesk:coroutineworker:0.6.2"
+                implementation "com.autodesk:coroutineworker:0.7.0"
             }
         }
     }
