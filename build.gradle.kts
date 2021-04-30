@@ -44,6 +44,13 @@ kotlin {
     iosArm64()
     iosArm32()
     macosX64()
+    tvosArm64()
+    tvosX64()
+    watchosArm32()
+    watchosArm64()
+    // waiting on https://github.com/Kotlin/kotlinx.coroutines/pull/2679
+    //watchosX64()
+    watchosX86()
     mingwX64()
     linuxX64()
 
@@ -53,7 +60,7 @@ kotlin {
         }
     }
 
-    targets.withType<org.jetbrains.kotlin.gradle.targets.js.KotlinJsTarget> {
+    targets.withType<KotlinJsTarget> {
         val test by compilations.getting {
             kotlinOptions.freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn")
         }
@@ -92,13 +99,26 @@ kotlin {
 
         val appleMain by creating
 
-        listOf("iosX64", "iosArm64", "iosArm32", "macosX64").forEach {
+        val appleTargets = listOf(
+            "iosX64",
+            "iosArm64",
+            "iosArm32",
+            "macosX64",
+            "tvosArm64",
+            "tvosX64",
+            "watchosArm32",
+            "watchosArm64",
+            "watchosX86"
+            // waiting on https://github.com/Kotlin/kotlinx.coroutines/pull/2679
+            //"watchosX64"
+        )
+        appleTargets.forEach {
             getByName("${it}Main") {
                 dependsOn(appleMain)
             }
         }
 
-        listOf("iosX64", "iosArm64", "iosArm32", "macosX64", "mingwX64", "linuxX64").forEach {
+        (appleTargets + listOf("mingwX64", "linuxX64")).forEach {
             getByName("${it}Main") {
                 dependsOn(nativeMain)
             }

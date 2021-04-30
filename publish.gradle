@@ -114,10 +114,17 @@ tasks.register('publishMac') {
     dependsOn 'publishIosArm64PublicationToMavenRepository'
     dependsOn 'publishIosArm32PublicationToMavenRepository'
     dependsOn 'publishIosX64PublicationToMavenRepository'
-    dependsOn 'publishMacosX64PublicationToMavenRepository'
+    dependsOn 'publishJsPublicationToMavenRepository'
     dependsOn 'publishJvmPublicationToMavenRepository'
     dependsOn 'publishKotlinMultiplatformPublicationToMavenRepository'
-    dependsOn 'publishJsPublicationToMavenRepository'
+    dependsOn 'publishMacosX64PublicationToMavenRepository'
+    dependsOn 'publishTvosArm64PublicationToMavenRepository'
+    dependsOn 'publishTvosX64PublicationToMavenRepository'
+    dependsOn 'publishWatchosArm32PublicationToMavenRepository'
+    dependsOn 'publishWatchosArm64PublicationToMavenRepository'
+    // waiting on https://github.com/Kotlin/kotlinx.coroutines/pull/2679
+    //dependsOn 'publishWatchosX64PublicationToMavenRepository'
+    dependsOn 'publishWatchosX86PublicationToMavenRepository'
 }
 
 tasks.register('publishWindows') {
