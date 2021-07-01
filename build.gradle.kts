@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMetadataTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsTarget
 
-val coroutinesVersion = "1.5.0-RC"
+val coroutinesVersion = "1.5.0"
 val atomicfuVersion = "0.16.1"
 
 plugins {
