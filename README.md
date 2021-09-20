@@ -7,7 +7,7 @@
 ## Specs
 
 - Supported on Native, JVM, and JS (legacy and IR) (feel free to contribute adding more targets)
-- Kotlin 1.5.21
+- Kotlin 1.5.30
 
 ## Gradle
 

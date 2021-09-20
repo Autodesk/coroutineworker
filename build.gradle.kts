@@ -1,12 +1,13 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMetadataTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsTarget
+import org.jetbrains.kotlin.konan.target.HostManager
 
-val coroutinesVersion = "1.5.0"
-val atomicfuVersion = "0.16.1"
+val coroutinesVersion = "1.5.2"
+val atomicfuVersion = "0.16.3"
 
 plugins {
-    kotlin("multiplatform") version "1.5.21"
+    kotlin("multiplatform") version "1.5.30"
     id("org.jetbrains.dokka") version "0.10.0"
     id("maven-publish")
     id("signing")
@@ -43,11 +44,15 @@ kotlin {
     iosX64()
     iosArm64()
     iosArm32()
+    iosSimulatorArm64()
+    macosArm64()
     macosX64()
     tvosArm64()
+    tvosSimulatorArm64()
     tvosX64()
     watchosArm32()
     watchosArm64()
+    watchosSimulatorArm64()
     // waiting on https://github.com/Kotlin/kotlinx.coroutines/pull/2679
     //watchosX64()
     watchosX86()
@@ -103,11 +108,15 @@ kotlin {
             "iosX64",
             "iosArm64",
             "iosArm32",
+            "iosSimulatorArm64",
+            "macosArm64",
             "macosX64",
             "tvosArm64",
+            "tvosSimulatorArm64",
             "tvosX64",
             "watchosArm32",
             "watchosArm64",
+            "watchosSimulatorArm64",
             "watchosX86"
             // waiting on https://github.com/Kotlin/kotlinx.coroutines/pull/2679
             //"watchosX64"
@@ -132,7 +141,8 @@ kotlin {
 kotlin {
     targets.all {
         compilations.all {
-            kotlinOptions.allWarningsAsErrors = true
+            // https://youtrack.jetbrains.com/issue/KT-46257
+            kotlinOptions.allWarningsAsErrors = false
         }
     }
 }
