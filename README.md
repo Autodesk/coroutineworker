@@ -101,7 +101,7 @@ In the sample directory, there is a sample project that demonstrates adding Coro
 
 ## CoroutineWorker Prefers Frozen State
 
-Object detachment (i.e. [transferring object ownership](https://github.com/JetBrains/kotlin-native/blob/master/CONCURRENCY.md#object-transfer-and-freezing) from one thread to another) is relatively difficult to achieve (outside of simple scenarios) compared to working with objects that are frozen and immutable. Because of this, CoroutineWorker prefers taking the frozen, immutable route:
+Object detachment (i.e. [transferring object ownership](https://kotlinlang.org/docs/native-concurrency.html#object-transfer-and-freezing) from one thread to another) is relatively difficult to achieve (outside of simple scenarios) compared to working with objects that are frozen and immutable. Because of this, CoroutineWorker prefers taking the frozen, immutable route:
 
 - Lambdas passed to CoroutineWorker are automatically frozen when they are going to be passed across threads.
 - The result value from `withContext` is also frozen.
