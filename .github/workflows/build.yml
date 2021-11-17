@@ -12,7 +12,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [macOS-latest, windows-latest, ubuntu-latest]
+        os: [macOS-11, windows-latest, ubuntu-latest]
     runs-on: ${{matrix.os}}
     steps:
       - name: Checkout the repo
@@ -38,4 +38,4 @@ jobs:
 
 env:
   GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx3g"
-  DEVELOPER_DIR: /Applications/Xcode_12.5.app/Contents/Developer
+  DEVELOPER_DIR: /Applications/Xcode_12.5.1.app/Contents/Developer
