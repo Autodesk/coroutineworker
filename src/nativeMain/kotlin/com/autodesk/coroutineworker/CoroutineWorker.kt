@@ -95,11 +95,9 @@ public actual class CoroutineWorker internal actual constructor() {
                     var completed = false
                     try {
                         repeatedlyCheckForCancellation(this.coroutineContext, cancelled) { completed }
-                        // inside of a new CoroutineScope, so that child jobs are cancelled
+                        // inside a new CoroutineScope, so that child jobs are cancelled
                         coroutineScope {
-                            autoreleasepool {
-                                block()
-                            }
+                            block()
                         }
                     } finally {
                         completed = true
