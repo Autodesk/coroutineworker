@@ -3,11 +3,11 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsTarget
 import org.jetbrains.kotlin.konan.target.HostManager
 
-val coroutinesVersion = "1.5.2"
-val atomicfuVersion = "0.16.3"
+val coroutinesVersion = "1.6.0"
+val atomicfuVersion = "0.17.0"
 
 plugins {
-    kotlin("multiplatform") version "1.6.0"
+    kotlin("multiplatform") version "1.6.10"
     id("org.jetbrains.dokka") version "0.10.0"
     id("maven-publish")
     id("signing")
