@@ -7,7 +7,7 @@ val coroutinesVersion = "1.6.0"
 val atomicfuVersion = "0.17.0"
 
 plugins {
-    kotlin("multiplatform") version "1.6.20"
+    kotlin("multiplatform") version "1.6.10"
     id("org.jetbrains.dokka") version "0.10.0"
     id("maven-publish")
     id("signing")
