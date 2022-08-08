@@ -14,7 +14,7 @@ version of CoroutineWorker uses the same implementation for all platforms.
 ## Specs
 
 - Supported on Native, JVM, and JS (legacy and IR) (feel free to contribute adding more targets)
-- Kotlin 1.6.20
+- Kotlin 1.7.10
 
 ## Gradle
 
