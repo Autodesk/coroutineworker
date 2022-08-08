@@ -1,3 +1,10 @@
+# This project is DEPRECATED
+
+With the release of Kotlin 1.7.20-Beta (https://blog.jetbrains.com/kotlin/2022/08/kotlin-1-7-20-beta/) and the new 
+Memory Model for Kotlin Native becoming the default, there's no longer a need for this library. Version 0.9.0 helps 
+transition over to the new memory model without having to make any changes related to CoroutineWorker code. The latest 
+version of CoroutineWorker uses the same implementation for all platforms.
+
 # CoroutineWorker
 
 [![Build Status](https://github.com/autodesk/coroutineworker/workflows/build/badge.svg)](https://github.com/autodesk/coroutineworker/actions?query=workflow%3Abuild)
@@ -18,7 +25,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation "com.autodesk:coroutineworker:0.8.3"
+                implementation "com.autodesk:coroutineworker:0.9.0"
             }
         }
     }
