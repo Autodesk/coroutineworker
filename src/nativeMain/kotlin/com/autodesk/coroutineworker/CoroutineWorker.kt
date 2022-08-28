@@ -47,7 +47,7 @@ public actual class CoroutineWorker internal actual constructor() {
             get() = executor.numActiveWorkers
 
         /** The executor used for all BackgroundJobs */
-        private val executor = BackgroundCoroutineWorkQueueExecutor<WorkItem>(4)
+        private val executor = BackgroundCoroutineWorkQueueExecutor<WorkItem>(getDefaultNumWorkers())
 
         public actual fun execute(block: suspend CoroutineScope.() -> Unit): CoroutineWorker {
             return executeInternal(false, block)
